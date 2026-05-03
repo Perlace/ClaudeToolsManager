@@ -1,0 +1,29 @@
+{
+  "id": "custom-symfony-expert",
+  "name": "Symfony Expert",
+  "shortDescription": "Conventions Symfony 7 pour Claude",
+  "description": "Configure Claude Code avec les meilleures pratiques Symfony 7: AssetMapper, Doctrine, routes, formulaires, sécurité. Évite les erreurs courantes Symfony et applique les patterns recommandés par la communauté.",
+  "category": "superpowers",
+  "tags": ["symfony", "php", "doctrine", "twig"],
+  "tokenImpact": "saves",
+  "tokenEstimate": "-15%",
+  "difficulty": "easy",
+  "config": {
+    "claudeMd": "## Symfony 7 Standards\n\nRègles pour les projets Symfony:\n- AssetMapper (pas Webpack Encore) pour les nouveaux projets\n- doctrine:schema:update --force sur le serveur (pas migrations si pas de CI)\n- Routes: attributs PHP #[Route] plutôt que YAML\n- Services: autowiring activé, pas de config manuelle si possible\n- Sécurité: voter classes pour l'autorisation complexe\n- Forms: FormType séparés, jamais inline\n- Templates: Twig avec extends/block, pas de PHP templates\n- Tests: WebTestCase pour les contrôleurs, KernelTestCase pour les services",
+    "commands": [
+      {
+        "name": "symfony-check",
+        "content": "# Symfony Best Practices Check\n\nAnalyse le code Symfony et signale les déviations des best practices officielles:\n- Structure des bundles\n- Injection de dépendances\n- Gestion des exceptions\n- Sécurité des formulaires (CSRF)\n- Performance des requêtes Doctrine"
+      }
+    ]
+  },
+  "tips": [
+    "Activez au début de chaque projet Symfony pour un contexte optimal",
+    "La commande /symfony-check est utile avant un code review",
+    "Compatible Symfony 6.4 LTS et 7.x"
+  ],
+  "isEnabled": false,
+  "isImported": true,
+  "author": "Creebs",
+  "version": "1.0.0"
+}

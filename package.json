@@ -1,0 +1,50 @@
+{
+  "name": "claude-tools-manager",
+  "version": "1.0.0",
+  "description": "Gestionnaire d'outils Claude Code pour l'amélioration des projets web",
+  "main": "./out/main/index.js",
+  "author": {
+    "name": "Creebs",
+    "email": "contact@creebs.fr"
+  },
+  "license": "MIT",
+  "homepage": "https://creebs.fr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/creebs/claude-tools-manager"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:all": "npm run build && electron-builder --win --mac --linux",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.0",
+    "@electron-toolkit/utils": "^3.0.0",
+    "electron-updater": "^6.1.7",
+    "framer-motion": "^11.1.0",
+    "lucide-react": "^0.359.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^2.1.0",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.8"
+  }
+}
