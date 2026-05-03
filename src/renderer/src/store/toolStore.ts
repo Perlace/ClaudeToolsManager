@@ -165,12 +165,16 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     try {
       const result = await api.reloadSessions()
       get().addToast({
-        type: result.success ? 'success' : 'warning',
-        title: result.success ? 'Sessions rechargées' : 'Rechargement partiel',
+        type: result.success ? (result.method === 'notify' ? 'info' : 'success') : 'warning',
+        title: result.method === 'live-reload'
+          ? 'Nouvelle session ouverte'
+          : result.success
+            ? 'Outils sauvegardés'
+            : 'Action requise',
         message: result.message,
       })
     } catch (err) {
-      get().addToast({ type: 'error', title: 'Erreur reload', message: String(err) })
+      get().addToast({ type: 'error', title: 'Erreur', message: String(err) })
     }
   },
 

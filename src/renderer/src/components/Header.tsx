@@ -54,7 +54,9 @@ export function Header() {
               />
             </motion.div>
             <span className="text-text-secondary">
-              {claudeInfo?.found ? `Claude ${claudeInfo.version || 'Code'}` : 'Non détecté'}
+              {claudeInfo?.found
+                ? `Claude ${claudeInfo.version || 'Code'}${claudeInfo.viaWsl ? ` · WSL` : ''}`
+                : 'Non détecté'}
             </span>
           </button>
 
@@ -68,14 +70,14 @@ export function Header() {
             <span>Importer</span>
           </button>
 
-          {/* Reload */}
+          {/* New session */}
           <button
             onClick={reloadSessions}
             className="btn-primary flex items-center gap-1.5 h-8 px-3 text-xs"
-            title="Recharger les sessions Claude Code"
+            title="Ouvrir une nouvelle session Claude Code avec les outils actifs"
           >
             <RefreshCw size={13} />
-            <span>Recharger</span>
+            <span>Nouvelle session</span>
           </button>
 
           {/* Window controls - Windows/Linux */}
