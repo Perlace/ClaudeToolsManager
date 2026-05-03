@@ -9,23 +9,16 @@ directories:
 files:
   - out/**/*
 
-icon: resources/icon
-
 win:
   target:
     - target: nsis
       arch:
         - x64
-        - arm64
-  icon: resources/icon.ico
 
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
-  installerIcon: resources/icon.ico
-  uninstallerIcon: resources/icon.ico
-  installerHeaderIcon: resources/icon.ico
   createDesktopShortcut: true
   createStartMenuShortcut: true
 
