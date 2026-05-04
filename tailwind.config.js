@@ -4,12 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#08080f',
-        surface: '#0f0f1a',
-        card: '#131320',
-        'card-hover': '#181828',
-        border: '#1e1e30',
-        'border-light': '#2a2a40',
+        bg: 'var(--color-bg)',
+        surface: 'var(--color-surface)',
+        card: 'var(--color-card)',
+        'card-hover': 'var(--color-card-hover)',
+        border: 'var(--color-border)',
+        'border-light': 'var(--color-border-light)',
         accent: '#ff6b35',
         'accent-hover': '#ff8555',
         'accent-dim': 'rgba(255,107,53,0.12)',
@@ -24,10 +24,10 @@ export default {
         'yellow-dim': 'rgba(245,158,11,0.12)',
         red: '#ef4444',
         'red-dim': 'rgba(239,68,68,0.12)',
-        text: '#e2e0f0',
-        'text-secondary': '#9492b8',
-        'text-muted': '#4a4870',
-        'text-dim': '#2e2c48',
+        text: 'var(--color-text)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-muted': 'var(--color-text-muted)',
+        'text-dim': 'var(--color-text-dim)',
       },
       fontFamily: {
         sans: [

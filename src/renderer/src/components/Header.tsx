@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
+import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
+import { ClaudeMdModal } from './ClaudeMdModal'
 import type { ToastMessage } from '../types'
 
 const api = window.electronAPI
 
 export function Header() {
-  const { searchQuery, setSearchQuery, importTool, reloadSessions, toasts, removeToast, claudeInfo, detectClaude, isLoading } = useToolStore()
+  const { searchQuery, setSearchQuery, importTool, reloadSessions, toasts, removeToast, claudeInfo, detectClaude, isLoading, theme, toggleTheme } = useToolStore()
+  const [claudeMdOpen, setClaudeMdOpen] = useState(false)
 
   return (
     <>
@@ -60,6 +63,25 @@ export function Header() {
             </span>
           </button>
 
+          {/* CLAUDE.md viewer */}
+          <button
+            onClick={() => setClaudeMdOpen(true)}
+            className="btn-secondary flex items-center gap-1.5 h-8 px-3 text-xs"
+            title="Voir le contenu du CLAUDE.md global"
+          >
+            <FileCode size={13} />
+            <span>CLAUDE.md</span>
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 rounded-xl border border-border flex items-center justify-center text-text-muted hover:bg-card hover:text-text transition-all"
+            title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          >
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+
           {/* Import */}
           <button
             onClick={importTool}
@@ -90,6 +112,9 @@ export function Header() {
           )}
         </div>
       </header>
+
+      {/* CLAUDE.md modal */}
+      <ClaudeMdModal open={claudeMdOpen} onClose={() => setClaudeMdOpen(false)} />
 
       {/* Toast notifications */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">

@@ -13,6 +13,7 @@ declare global {
       openExternal: (url: string) => Promise<void>
       openSettingsFile: () => Promise<void>
       openClaudeMd: () => Promise<void>
+      readClaudeMd: () => Promise<{ success: boolean; content: string }>
       minimizeWindow: () => void
       maximizeWindow: () => void
       closeWindow: () => void

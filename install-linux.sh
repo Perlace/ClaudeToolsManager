@@ -16,6 +16,43 @@ echo "  ║       Linux Installer                    ║"
 echo "  ╚══════════════════════════════════════════╝"
 echo ""
 
+# Check for .deb package first (preferred on Debian/Ubuntu — no FUSE required)
+DEB_PKG=$(find "$(dirname "$0")/dist" -name "*amd64*.deb" -o -name "*x64*.deb" 2>/dev/null | head -1)
+if [ -n "$DEB_PKG" ]; then
+    echo "📦 Paquet .deb détecté: $(basename "$DEB_PKG")"
+    echo "   Installation via dpkg (recommandé, pas besoin de FUSE)..."
+    echo ""
+    if command -v sudo &>/dev/null; then
+        sudo dpkg -i "$DEB_PKG" && echo "✅ Installation .deb réussie !" && exit 0
+        echo "⚠️  dpkg a échoué, tentative de résolution des dépendances..."
+        sudo apt-get install -f -y 2>/dev/null && echo "✅ Dépendances résolues !" && exit 0
+    else
+        echo "⚠️  sudo non disponible, tentative sans privilèges..."
+    fi
+    echo ""
+fi
+
+# Check FUSE2 availability for AppImage (required on Ubuntu 22.04+)
+FUSE_OK=false
+APPIMAGE_EXTRA_FLAGS=""
+if ldconfig -p 2>/dev/null | grep -q "libfuse.so.2"; then
+    FUSE_OK=true
+elif [ -f /usr/lib/x86_64-linux-gnu/libfuse.so.2 ] || [ -f /usr/lib/libfuse.so.2 ]; then
+    FUSE_OK=true
+fi
+
+if [ "$FUSE_OK" = false ]; then
+    echo "⚠️  libfuse2 non détecté (requis par AppImage sur Ubuntu 22.04+)."
+    echo ""
+    echo "   Pour installer libfuse2 :"
+    echo "   sudo apt-get install libfuse2"
+    echo ""
+    echo "   Ou utiliser le mode sans FUSE (extraction temporaire) :"
+    echo "   L'installation continuera avec --appimage-extract-and-run"
+    echo ""
+    APPIMAGE_EXTRA_FLAGS="--appimage-extract-and-run"
+fi
+
 # Detect if AppImage is present — prefer x64, fallback to first found
 APPIMAGE=$(find "$(dirname "$0")/dist" -name "*x64*.AppImage" -o -name "*amd64*.AppImage" 2>/dev/null | head -1)
 if [ -z "$APPIMAGE" ]; then
@@ -66,7 +103,7 @@ cat > "$DESKTOP_DIR/claude-tools-manager.desktop" << DESKTOP
 Version=1.1
 Name=Claude Tools Manager
 Comment=Gestionnaire d'outils Claude Code — 50 outils en 8 catégories
-Exec=$INSTALL_DIR/$APPIMAGE_DEST --no-sandbox
+Exec=$INSTALL_DIR/$APPIMAGE_DEST $APPIMAGE_EXTRA_FLAGS --no-sandbox
 Icon=$ICON_PATH
 Terminal=false
 Type=Application
@@ -105,5 +142,11 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo "⚠️  $BIN_DIR n'est pas dans votre PATH."
     echo "   Ajoutez cette ligne à votre ~/.bashrc ou ~/.zshrc :"
     echo "   export PATH=\"\$HOME/.local/bin:\$PATH\""
+    echo ""
+fi
+
+if [ "$FUSE_OK" = false ]; then
+    echo "ℹ️  L'app tourne en mode --appimage-extract-and-run (pas de FUSE)."
+    echo "   Pour de meilleures performances : sudo apt-get install libfuse2"
     echo ""
 fi

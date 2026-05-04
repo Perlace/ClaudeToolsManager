@@ -15,6 +15,7 @@ const api = {
   openExternal: (url: string): Promise<void> => ipcRenderer.invoke('open-external', url),
   openSettingsFile: (): Promise<void> => ipcRenderer.invoke('open-settings-file'),
   openClaudeMd: (): Promise<void> => ipcRenderer.invoke('open-claude-md'),
+  readClaudeMd: (): Promise<{ success: boolean; content: string }> => ipcRenderer.invoke('read-claude-md'),
 
   minimizeWindow: (): void => ipcRenderer.send('minimize-window'),
   maximizeWindow: (): void => ipcRenderer.send('maximize-window'),

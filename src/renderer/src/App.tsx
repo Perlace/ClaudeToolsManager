@@ -3,7 +3,7 @@ import { Layout } from './components/Layout'
 import { useToolStore } from './store/toolStore'
 
 export function App() {
-  const { detectClaude, loadEnabledTools, loadCustomTools } = useToolStore()
+  const { detectClaude, loadEnabledTools, loadCustomTools, theme } = useToolStore()
 
   useEffect(() => {
     const init = async () => {
@@ -13,6 +13,10 @@ export function App() {
     }
     init()
   }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+  }, [theme])
 
   return <Layout />
 }

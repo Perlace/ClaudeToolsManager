@@ -72,4 +72,13 @@ export function setupIPC(): void {
   ipcMain.handle('open-claude-md', () => {
     shell.openPath(claudeInfo.globalClaudeMdPath)
   })
+
+  ipcMain.handle('read-claude-md', () => {
+    try {
+      const content = readFileSync(claudeInfo.globalClaudeMdPath, 'utf8')
+      return { success: true, content }
+    } catch {
+      return { success: false, content: '' }
+    }
+  })
 }

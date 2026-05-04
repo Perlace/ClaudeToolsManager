@@ -11,6 +11,7 @@ interface ToolStore {
   toasts: ToastMessage[]
   isLoading: boolean
   pendingChanges: Set<string>
+  theme: 'dark' | 'light'
 
   setActiveCategory: (id: string) => void
   setSearchQuery: (q: string) => void
@@ -23,6 +24,7 @@ interface ToolStore {
   importTool: () => Promise<void>
   reloadSessions: () => Promise<void>
   detectClaude: () => Promise<void>
+  toggleTheme: () => void
 
   getFilteredTools: () => Tool[]
   getToolsByCategory: (categoryId: string) => Tool[]
@@ -41,6 +43,7 @@ export const useToolStore = create<ToolStore>((set, get) => ({
   toasts: [],
   isLoading: false,
   pendingChanges: new Set(),
+  theme: (localStorage.getItem('theme') as 'dark' | 'light') || 'dark',
 
   setActiveCategory: (id) => set({ activeCategory: id }),
   setSearchQuery: (q) => set({ searchQuery: q }),
@@ -188,6 +191,12 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     } finally {
       set({ isLoading: false })
     }
+  },
+
+  toggleTheme: () => {
+    const next = get().theme === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('theme', next)
+    set({ theme: next })
   },
 
   getFilteredTools: () => {
