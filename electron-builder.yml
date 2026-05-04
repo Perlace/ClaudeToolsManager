@@ -1,6 +1,6 @@
 appId: fr.creebs.claude-tools-manager
 productName: Claude Tools Manager
-copyright: Copyright © 2024 Creebs
+copyright: Copyright © 2025 Creebs
 
 directories:
   buildResources: resources
@@ -10,10 +10,12 @@ files:
   - out/**/*
 
 win:
+  icon: resources/icon.ico
   target:
     - target: nsis
       arch:
         - x64
+        - arm64
 
 nsis:
   oneClick: false
@@ -21,16 +23,20 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  shortcutName: Claude Tools Manager
 
 mac:
+  icon: resources/icon.icns
   target:
     - target: dmg
       arch:
         - x64
         - arm64
   category: public.app-category.developer-tools
-  icon: resources/icon.icns
   darkModeSupport: true
+  hardenedRuntime: true
+  entitlements: null
+  entitlementsInherit: null
 
 dmg:
   title: Claude Tools Manager
@@ -45,6 +51,15 @@ dmg:
       type: file
 
 linux:
+  icon: resources/icon.png
+  category: Development
+  description: Gestionnaire d'outils Claude Code — 50+ outils en 8 catégories
+  maintainer: Creebs <contact@creebs.fr>
+  vendor: Creebs
+  synopsis: Claude Code tools manager
+  desktop:
+    Keywords: claude;ai;tools;code;anthropic;
+    StartupWMClass: claude-tools-manager
   target:
     - target: AppImage
       arch:
@@ -53,10 +68,14 @@ linux:
     - target: deb
       arch:
         - x64
-  icon: resources/icon.png
-  category: Development
+    - target: rpm
+      arch:
+        - x64
+
+appImage:
+  systemIntegration: ask
 
 publish:
   provider: github
-  owner: creebs
-  repo: claude-tools-manager
+  owner: Perlace
+  repo: ClaudeToolsManager

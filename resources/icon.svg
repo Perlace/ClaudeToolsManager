@@ -1,13 +1,80 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="120" fill="#08080f"/>
-  <rect x="40" y="40" width="432" height="432" rx="96" fill="url(#grad)"/>
-  <path d="M200 160 L312 160 L312 200 L248 200 L248 232 L296 232 L296 272 L248 272 L248 352 L200 352 Z" fill="white" opacity="0.95"/>
-  <circle cx="340" cy="320" r="36" fill="white" opacity="0.9"/>
-  <circle cx="340" cy="320" r="20" fill="#08080f"/>
+  <!-- Outer background -->
+  <rect width="512" height="512" rx="115" fill="#08080f"/>
+  <!-- Subtle inner layer -->
+  <rect x="16" y="16" width="480" height="480" rx="100" fill="#0d0d1b"/>
+
+  <!-- Background circuit grid dots -->
+  <circle cx="96"  cy="112" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="136" cy="112" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="176" cy="112" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="96"  cy="152" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="136" cy="152" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="176" cy="152" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="96"  cy="192" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="96"  cy="320" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="136" cy="360" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="176" cy="360" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="96"  cy="360" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="96"  cy="400" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="136" cy="400" r="5" fill="#ff6b35" opacity="0.08"/>
+  <circle cx="176" cy="400" r="5" fill="#ff6b35" opacity="0.08"/>
+
+  <!-- Horizontal trace lines (subtle circuit) -->
+  <rect x="60" y="149" width="100" height="6" rx="3" fill="#ff6b35" opacity="0.06"/>
+  <rect x="60" y="357" width="100" height="6" rx="3" fill="#ff6b35" opacity="0.06"/>
+
+  <!-- Outer ring (very subtle glow ring) -->
+  <circle cx="256" cy="256" r="205" fill="none" stroke="#ff6b35" stroke-width="1.5" opacity="0.08"/>
+
+  <!-- ── Main C arc ──────────────────────────────────────────── -->
+  <!-- Center 256,256 · radius 140 · from (346,149) to (346,363) counterclockwise -->
+  <path d="M 346 149 A 140 140 0 1 0 346 363"
+        stroke="url(#cGrad)" stroke-width="64" fill="none" stroke-linecap="round"/>
+
+  <!-- Glow layer (wider, dimmer) -->
+  <path d="M 346 149 A 140 140 0 1 0 346 363"
+        stroke="url(#cGlow)" stroke-width="90" fill="none" stroke-linecap="round" opacity="0.12"/>
+
+  <!-- ── Circuit nodes at arc endpoints ─────────────────────── -->
+  <!-- Top node -->
+  <circle cx="346" cy="149" r="32" fill="#0d0d1b"/>
+  <circle cx="346" cy="149" r="32" fill="none" stroke="#ff6b35" stroke-width="12"/>
+  <circle cx="346" cy="149" r="10" fill="#ff6b35"/>
+
+  <!-- Bottom node -->
+  <circle cx="346" cy="363" r="32" fill="#0d0d1b"/>
+  <circle cx="346" cy="363" r="32" fill="none" stroke="#ff6b35" stroke-width="12"/>
+  <circle cx="346" cy="363" r="10" fill="#ff6b35"/>
+
+  <!-- ── Circuit trace extensions from nodes ────────────────── -->
+  <!-- Top node → right → up -->
+  <rect x="346" y="143" width="88" height="12" rx="6" fill="#ff6b35" opacity="0.7"/>
+  <rect x="422" y="68"  width="12" height="87" rx="6" fill="#ff6b35" opacity="0.5"/>
+  <circle cx="428" cy="68" r="8" fill="#ff6b35" opacity="0.6"/>
+
+  <!-- Bottom node → right → down -->
+  <rect x="346" y="357" width="88" height="12" rx="6" fill="#ff6b35" opacity="0.7"/>
+  <rect x="422" y="357" width="12" height="88" rx="6" fill="#ff6b35" opacity="0.5"/>
+  <circle cx="428" cy="441" r="8" fill="#ff6b35" opacity="0.6"/>
+
+  <!-- Small terminal caps -->
+  <rect x="418" y="60"  width="20" height="8"  rx="4" fill="#ff9a6c" opacity="0.8"/>
+  <rect x="418" y="444" width="20" height="8"  rx="4" fill="#ff9a6c" opacity="0.8"/>
+
+  <!-- Inner subtle spark at center of C opening -->
+  <circle cx="256" cy="256" r="8" fill="#ff6b35" opacity="0.25"/>
+  <circle cx="256" cy="256" r="3" fill="#ff9a6c" opacity="0.5"/>
+
   <defs>
-    <linearGradient id="grad" x1="40" y1="40" x2="472" y2="472" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#ff6b35"/>
+    <linearGradient id="cGrad" x1="346" y1="149" x2="346" y2="363" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ffb085"/>
+      <stop offset="45%"  stop-color="#ff6b35"/>
       <stop offset="100%" stop-color="#cc3a00"/>
+    </linearGradient>
+    <linearGradient id="cGlow" x1="346" y1="149" x2="346" y2="363" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ff9a6c"/>
+      <stop offset="100%" stop-color="#ff6b35"/>
     </linearGradient>
   </defs>
 </svg>

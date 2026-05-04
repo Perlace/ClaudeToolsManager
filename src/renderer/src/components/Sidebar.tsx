@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { LayoutGrid } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
 import { CATEGORIES } from '../data/tools'
+import { LogoIcon } from './Logo'
 
 export function Sidebar() {
   const { activeCategory, setActiveCategory, tools } = useToolStore()
@@ -20,12 +21,12 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-3 pb-4 pt-1 titlebar-drag">
         <div className="flex items-center gap-2.5 no-drag">
-          <div className="w-8 h-8 rounded-xl bg-gradient-accent flex items-center justify-center shadow-glow">
-            <span className="text-white text-sm font-bold">C</span>
+          <div className="shrink-0 shadow-glow rounded-lg">
+            <LogoIcon size={32} />
           </div>
           <div>
             <div className="text-sm font-bold text-gradient-accent leading-tight">Claude Tools</div>
-            <div className="text-2xs text-text-muted">Manager v1.0</div>
+            <div className="text-2xs text-text-muted">Manager v1.1</div>
           </div>
         </div>
       </div>

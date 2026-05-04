@@ -18,6 +18,15 @@ export function Settings() {
 
       {/* Claude Code paths */}
       <Section title="Chemins Claude Code" icon="📁">
+        {claudeInfo?.viaWsl && (
+          <div className="flex items-center gap-2 px-3 py-2 mb-3 bg-purple-dim border border-purple/30 rounded-xl">
+            <span className="text-sm">🐧</span>
+            <div>
+              <div className="text-xs font-semibold text-purple">Claude Code via WSL ({claudeInfo.wslDistro})</div>
+              <div className="text-xs text-text-secondary mt-0.5">Les fichiers sont lus/écrits dans le filesystem WSL via \\wsl$\</div>
+            </div>
+          </div>
+        )}
         <SettingRow
           label="settings.json"
           value={claudeInfo?.settingsPath || 'Non détecté'}
@@ -103,7 +112,7 @@ export function Settings() {
           <div className="flex items-center justify-between py-2">
             <div>
               <div className="text-sm font-semibold text-text">Claude Tools Manager</div>
-              <div className="text-xs text-text-secondary">Version 1.0.0 — Open Source</div>
+              <div className="text-xs text-text-secondary">Version 1.1.0 — Open Source</div>
             </div>
             <div className="flex items-center gap-2">
               <div className="dot-enabled" />
@@ -115,7 +124,7 @@ export function Settings() {
             <ActionButton
               icon={<Github size={14} />}
               label="Code source sur GitHub"
-              onClick={() => api.openExternal('https://github.com/creebs/claude-tools-manager')}
+              onClick={() => api.openExternal('https://github.com/Perlace/ClaudeToolsManager')}
             />
             <ActionButton
               icon={<ExternalLink size={14} />}

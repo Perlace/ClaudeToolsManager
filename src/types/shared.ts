@@ -53,4 +53,6 @@ export interface ClaudeInstallation {
   globalClaudeMdPath: string
   commandsPath: string
   platform: string
+  viaWsl?: boolean
+  wslDistro?: string
 }

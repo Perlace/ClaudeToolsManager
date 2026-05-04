@@ -31,7 +31,7 @@ export function setupIPC(): void {
   })
 
   ipcMain.handle('reload-sessions', () => {
-    return reloadClaudeSessions(claudeInfo.cliPath)
+    return reloadClaudeSessions(claudeInfo.cliPath, claudeInfo.viaWsl)
   })
 
   ipcMain.handle('is-claude-running', () => {

@@ -70,6 +70,38 @@ export const CATEGORIES: Category[] = [
 export const TOOLS: Tool[] = [
   // ─── SUPER POWERS ──────────────────────────────────────────────────────────
   {
+    id: 'sp-ruflo',
+    name: 'Ruflo',
+    shortDescription: '100+ agents spécialisés en swarm orchestration',
+    description:
+      "Ruflo (ex-ClaudeFlow) est une plateforme d'orchestration multi-agents qui s'installe comme plugin natif dans Claude Code. Elle déploie 100+ agents spécialisés (coding, testing, sécurité, DevOps, documentation) qui se coordonnent en topologie hiérarchique ou mesh. Inclut AgentDB (mémoire vectorielle HNSW persistante), 210 outils MCP, 12 workers background auto-déclenchés, et AIDefence (protection contre l'injection de prompts et exposition PII). Multi-LLM : Claude, GPT, Gemini, Ollama.",
+    category: 'superpowers',
+    tags: ['multi-agent', 'orchestration', 'swarm', 'mcp', 'automation'],
+    tokenImpact: 'costs',
+    tokenEstimate: '+300%',
+    difficulty: 'advanced',
+    config: {
+      commands: [
+        {
+          name: 'ruflo-setup',
+          content:
+            '# Ruflo — Multi-Agent Orchestration\n\nInstalle et configure Ruflo dans Claude Code.\n\n## Installation\nDans Claude Code, exécuter:\n```\n/plugin install ruflo-core@ruflo\n```\n\n## Après installation\n- 100+ agents spécialisés disponibles nativement\n- 210 outils MCP activés automatiquement\n- AgentDB (mémoire vectorielle HNSW) initialisée\n- AIDefence (protection injection/PII) active\n- 12 workers background auto-déclenchés\n\n## Utilisation\nSpawner des agents spécialisés:\n- Agent coding : analyse et écrit du code\n- Agent security : audit vulnérabilités\n- Agent testing : génère et exécute des tests\n- Agent docs : documentation automatique\n\n## Ressources\n- GitHub: https://github.com/ruvnet/ruflo\n- Interface web: https://flo.ruv.io\n- Goal Planner: https://goal.ruv.io',
+        },
+      ],
+    },
+    tips: [
+      'Installer avec /plugin install ruflo-core@ruflo depuis Claude Code',
+      "L'AgentDB conserve la mémoire vectorielle entre toutes les sessions",
+      'AIDefence bloque automatiquement les injections de prompts malveillants',
+      'Combinez plusieurs agents en parallèle pour les gros projets (coding + security + tests)',
+      'Interface de gestion visuelle disponible sur flo.ruv.io',
+    ],
+    isEnabled: false,
+    isImported: false,
+    author: 'ruvnet',
+    homepage: 'https://github.com/ruvnet/ruflo',
+  },
+  {
     id: 'sp-ultrareview',
     name: 'Ultra Review',
     shortDescription: 'Review multi-agents en parallèle',
