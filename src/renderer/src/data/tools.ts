@@ -79,12 +79,12 @@ export const TOOLS: Tool[] = [
   // ─── ESSENTIAL PLUGINS ─────────────────────────────────────────────────────
   {
     id: 'essential-statusline',
-    name: 'Token Usage Statusline',
-    shortDescription: 'Barre de statut : tokens utilisés, dispo et heure de reset',
+    name: 'Context Window Monitor',
+    shortDescription: 'Barre de statut : contexte de la conversation en cours (≠ quota plan)',
     description:
-      'Affiche en temps réel en bas de Claude Code : le nombre de tokens utilisés, le total disponible (200k), le pourcentage consommé, et une estimation de l\'heure à laquelle le contexte sera plein. Le script calcule le taux de consommation au fil de la conversation pour affiner la prédiction.',
+      'Affiche en bas de Claude Code l\'usage du context window de la conversation en cours : tokens utilisés, total (200k max), pourcentage, et estimation de l\'heure à laquelle ce contexte sera plein. ⚠️ Ce n\'est PAS le quota de ton plan claude.ai — c\'est uniquement le remplissage de la conversation actuelle. Pour suivre ton quota plan, utilise le tool "Quota Reset Timer".',
     category: 'essential',
-    tags: ['statusline', 'tokens', 'context', 'monitoring', 'ui'],
+    tags: ['statusline', 'context-window', 'monitoring', 'ui'],
     tokenImpact: 'neutral',
     tokenEstimate: '0%',
     difficulty: 'easy',
@@ -106,12 +106,12 @@ USED=$(echo "$INPUT" | jq -r '.context_window.total_input_tokens // 0')
 TOTAL=$(echo "$INPUT" | jq -r '.context_window.context_window_size // 200000')
 PCT=$(echo "$INPUT" | jq -r '(.context_window.used_percentage // 0) | floor')
 
-SESSION_FILE="/tmp/ctm_session_\${USER}"
+SESSION_FILE="/tmp/ctm_ctx_\${USER}"
 NOW=$(date +%s)
 
 if [ ! -f "$SESSION_FILE" ]; then
   echo "$NOW $USED" > "$SESSION_FILE"
-  RESET_STR="reset ~--:--"
+  FULL_STR="full ~--:--"
 else
   read START_TIME START_USED < "$SESSION_FILE"
   ELAPSED=$((NOW - START_TIME))
@@ -120,25 +120,86 @@ else
   if [ "$DELTA" -gt 100 ] && [ "$ELAPSED" -gt 0 ]; then
     REMAINING=$((TOTAL - USED))
     SECONDS_LEFT=$(awk "BEGIN { printf \\"%d\\", ($REMAINING / $DELTA) * $ELAPSED }")
-    RESET_EPOCH=$((NOW + SECONDS_LEFT))
-    RESET_TIME=$(date -d "@$RESET_EPOCH" +"%H:%M" 2>/dev/null || date -r "$RESET_EPOCH" +"%H:%M" 2>/dev/null)
-    RESET_STR="reset ~$RESET_TIME"
+    FULL_EPOCH=$((NOW + SECONDS_LEFT))
+    FULL_TIME=$(date -d "@$FULL_EPOCH" +"%H:%M" 2>/dev/null || date -r "$FULL_EPOCH" +"%H:%M" 2>/dev/null)
+    FULL_STR="full ~$FULL_TIME"
   else
-    RESET_STR="reset ~--:--"
+    FULL_STR="full ~--:--"
   fi
 fi
 
-echo "🪟 $USED / $TOTAL tokens (\${PCT}%) · $RESET_STR"
+echo "🪟 Context: $USED / $TOTAL (\${PCT}%) · $FULL_STR"
 `,
         },
       ],
     },
     tips: [
-      'La barre apparaît en bas de Claude Code dès le premier message après activation',
-      'L\'heure de reset est une estimation basée sur ton rythme de consommation actuel',
+      '⚠️ Affiche le context window de la conversation, PAS ton quota plan claude.ai',
+      'Pour le quota plan, active plutôt le tool "Quota Reset Timer"',
+      'L\'heure "full" est une estimation du moment où ce contexte sera saturé',
       'L\'estimation s\'affine au fil de la conversation',
-      'Nécessite jq installé sur ton système (sudo apt install jq)',
-      'Désactiver le plugin supprime automatiquement le script et la config',
+      'Nécessite jq (sudo apt install jq) · Désactiver supprime le script automatiquement',
+    ],
+    isEnabled: false,
+    isImported: false,
+  },
+  {
+    id: 'essential-quota-timer',
+    name: 'Quota Reset Timer',
+    shortDescription: 'Compte à rebours jusqu\'au reset de ton quota plan claude.ai',
+    description:
+      'Affiche en bas de Claude Code un compte à rebours jusqu\'à l\'heure de reset de ton quota plan claude.ai. Claude Code n\'expose pas le quota plan directement — ce tool affiche simplement le temps restant jusqu\'à une heure fixe que tu configures dans le script (par défaut 11:30). Modifie la variable RESET_TIME dans ~/.claude/statusline-quota.sh pour l\'adapter à ton plan.',
+    category: 'essential',
+    tags: ['statusline', 'quota', 'reset', 'monitoring', 'ui'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '0%',
+    difficulty: 'easy',
+    config: {
+      settingsJson: {
+        statusLine: {
+          type: 'command',
+          command: '~/.claude/statusline-quota.sh',
+        },
+      },
+      files: [
+        {
+          path: '~/.claude/statusline-quota.sh',
+          executable: true,
+          content: `#!/bin/bash
+# ── Éditez cette ligne pour votre heure de reset ──────────────────
+RESET_TIME="11:30"
+# ──────────────────────────────────────────────────────────────────
+
+NOW_SECS=$(date +%s)
+RESET_SECS=$(date -d "today $RESET_TIME" +%s 2>/dev/null || date -jf "%H:%M" "$RESET_TIME" +%s 2>/dev/null)
+
+if [ -z "$RESET_SECS" ]; then
+  echo "⏱ Quota reset: $RESET_TIME"
+  exit 0
+fi
+
+if [ "$RESET_SECS" -le "$NOW_SECS" ]; then
+  RESET_SECS=$((RESET_SECS + 86400))
+fi
+
+DIFF=$((RESET_SECS - NOW_SECS))
+HOURS=$((DIFF / 3600))
+MINS=$(( (DIFF % 3600) / 60 ))
+
+if [ "$HOURS" -gt 0 ]; then
+  echo "⏱ Quota reset in \${HOURS}h\${MINS}m (at $RESET_TIME)"
+else
+  echo "⏱ Quota reset in \${MINS}m (at $RESET_TIME)"
+fi
+`,
+        },
+      ],
+    },
+    tips: [
+      'Édite RESET_TIME dans ~/.claude/statusline-quota.sh pour changer l\'heure',
+      'L\'heure de reset dépend de ton plan — vérifie sur claude.ai',
+      'Ne peut pas être actif en même temps que "Context Window Monitor" (même statusLine)',
+      'Désactiver supprime le script et la config automatiquement',
     ],
     isEnabled: false,
     isImported: false,
