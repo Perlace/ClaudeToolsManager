@@ -72,9 +72,6 @@ linux:
       arch:
         - x64
 
-appImage:
-  systemIntegration: ask
-
 publish:
   provider: github
   owner: Perlace
