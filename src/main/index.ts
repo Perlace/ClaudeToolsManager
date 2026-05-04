@@ -24,7 +24,11 @@ function createWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: join(__dirname, '../../resources/icon.png'),
+    icon: join(
+      __dirname,
+      '../../resources',
+      process.platform === 'win32' ? 'icon.ico' : 'icon.png'
+    ),
   })
 
   mainWindow.on('ready-to-show', () => {
