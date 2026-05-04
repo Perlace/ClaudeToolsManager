@@ -1,17 +1,22 @@
 import { motion } from 'framer-motion'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, Settings2 } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
-import { CATEGORIES } from '../data/tools'
 import { LogoIcon } from './Logo'
 
-export function Sidebar() {
-  const { activeCategory, setActiveCategory, tools } = useToolStore()
+interface SidebarProps {
+  onManageCategories: () => void
+}
+
+export function Sidebar({ onManageCategories }: SidebarProps) {
+  const { activeCategory, setActiveCategory, tools, getAllCategories, getEffectiveCategoryId } = useToolStore()
+
+  const allCategories = getAllCategories()
 
   const counts = Object.fromEntries(
-    CATEGORIES.map((c) => [c.id, tools.filter((t) => t.category === c.id).length])
+    allCategories.map((c) => [c.id, tools.filter((t) => getEffectiveCategoryId(t.id, t.category) === c.id).length])
   )
   const enabledCounts = Object.fromEntries(
-    CATEGORIES.map((c) => [c.id, tools.filter((t) => t.category === c.id && t.isEnabled).length])
+    allCategories.map((c) => [c.id, tools.filter((t) => getEffectiveCategoryId(t.id, t.category) === c.id && t.isEnabled).length])
   )
 
   const totalEnabled = tools.filter((t) => t.isEnabled).length
@@ -45,18 +50,25 @@ export function Sidebar() {
       />
 
       <div className="h-px bg-border mx-2 my-1" />
-      <div className="px-3 py-1">
+      <div className="px-3 py-1 flex items-center justify-between">
         <span className="text-2xs font-semibold text-text-dim uppercase tracking-widest">Catégories</span>
+        <button
+          onClick={onManageCategories}
+          title="Gérer les catégories"
+          className="no-drag w-6 h-6 rounded-lg flex items-center justify-center text-text-muted hover:text-text hover:bg-card transition-all"
+        >
+          <Settings2 size={12} />
+        </button>
       </div>
 
       {/* Categories */}
-      {CATEGORIES.map((cat) => (
+      {allCategories.map((cat) => (
         <SidebarItem
           key={cat.id}
           icon={<span className="text-sm">{cat.icon}</span>}
           label={cat.name}
-          count={counts[cat.id]}
-          enabledCount={enabledCounts[cat.id]}
+          count={counts[cat.id] ?? 0}
+          enabledCount={enabledCounts[cat.id] ?? 0}
           isActive={activeCategory === cat.id}
           color={cat.color}
           onClick={() => setActiveCategory(cat.id)}

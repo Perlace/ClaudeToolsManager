@@ -149,7 +149,7 @@ echo "🪟 $USED / $TOTAL tokens (\${PCT}%) · $RESET_STR"
     shortDescription: 'Visual feedback Chrome extension — annotate UI elements for Claude Code',
     description:
       'ClaudeSnap est une extension Chrome qui permet d\'annoter visuellement n\'importe quel élément d\'une page web et de générer un prompt structuré prêt à coller dans Claude Code. Le prompt inclut le sélecteur CSS unique, le chemin DOM, les classes/IDs, les styles calculés, les dimensions et ton annotation. Claude Code reçoit tout le contexte nécessaire pour appliquer les modifications sans avoir à copier le code.',
-    category: 'essential',
+    category: 'frontend',
     tags: ['chrome-extension', 'ui', 'visual', 'frontend', 'annotations', 'css'],
     tokenImpact: 'neutral',
     tokenEstimate: '0%',

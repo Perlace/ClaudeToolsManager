@@ -6,12 +6,14 @@ import { Header } from './Header'
 import { Dashboard } from '../pages/Dashboard'
 import { ToolsPage } from '../pages/ToolsPage'
 import { Settings } from '../pages/Settings'
+import { CategoryManagerModal } from './CategoryManagerModal'
 import { useToolStore } from '../store/toolStore'
 
 type Page = 'dashboard' | 'tools' | 'settings'
 
 export function Layout() {
   const [page, setPage] = useState<Page>('dashboard')
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const { activeCategory } = useToolStore()
 
   const showSidebar = page === 'tools'
@@ -45,7 +47,9 @@ export function Layout() {
         </nav>
 
         {/* Sidebar (only for tools) */}
-        {showSidebar && <Sidebar />}
+        {showSidebar && (
+          <Sidebar onManageCategories={() => setCategoryManagerOpen(true)} />
+        )}
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto scrollable">
@@ -54,6 +58,11 @@ export function Layout() {
           {page === 'settings' && <Settings />}
         </main>
       </div>
+
+      <CategoryManagerModal
+        open={categoryManagerOpen}
+        onClose={() => setCategoryManagerOpen(false)}
+      />
     </div>
   )
 }

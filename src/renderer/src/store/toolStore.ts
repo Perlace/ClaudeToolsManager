@@ -13,6 +13,12 @@ interface ToolStore {
   pendingChanges: Set<string>
   theme: 'dark' | 'light'
 
+  // Category state
+  toolCatOverrides: Record<string, string>
+  userCategories: Category[]
+  catCustomizations: Record<string, Partial<Category>>
+  categoryOrder: string[]
+
   setActiveCategory: (id: string) => void
   setSearchQuery: (q: string) => void
   setClaudeInfo: (info: ClaudeInstallation) => void
@@ -26,6 +32,17 @@ interface ToolStore {
   detectClaude: () => Promise<void>
   toggleTheme: () => void
 
+  // Category actions
+  loadCategoryData: () => Promise<void>
+  moveToolToCategory: (toolId: string, categoryId: string) => Promise<void>
+  addUserCategory: (cat: Omit<Category, 'id'>) => Promise<void>
+  updateCategoryCustom: (id: string, patch: Partial<Category>) => Promise<void>
+  deleteUserCategory: (id: string) => Promise<void>
+  saveCategoryOrder: (orderedIds: string[]) => Promise<void>
+
+  // Computed
+  getAllCategories: () => Category[]
+  getEffectiveCategoryId: (toolId: string, defaultCatId: string) => string
   getFilteredTools: () => Tool[]
   getToolsByCategory: (categoryId: string) => Tool[]
   getEnabledCount: () => number
@@ -44,6 +61,12 @@ export const useToolStore = create<ToolStore>((set, get) => ({
   isLoading: false,
   pendingChanges: new Set(),
   theme: (localStorage.getItem('theme') as 'dark' | 'light') || 'dark',
+
+  // Category state
+  toolCatOverrides: {},
+  userCategories: [],
+  catCustomizations: {},
+  categoryOrder: [],
 
   setActiveCategory: (id) => set({ activeCategory: id }),
   setSearchQuery: (q) => set({ searchQuery: q }),
@@ -199,10 +222,123 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     set({ theme: next })
   },
 
+  // ─── Category actions ───────────────────────────────────────────────────────
+
+  loadCategoryData: async () => {
+    try {
+      const [overrides, userCats, customRaw] = await Promise.all([
+        api.getToolCatOverrides(),
+        api.getUserCategories(),
+        api.getCatCustomizations(),
+      ])
+      const { _order, ...customs } = customRaw as Record<string, Partial<Category> | string[]>
+      const categoryOrder = Array.isArray(_order) ? (_order as string[]) : []
+      set({
+        toolCatOverrides: overrides,
+        userCategories: userCats as Category[],
+        catCustomizations: customs as Record<string, Partial<Category>>,
+        categoryOrder,
+      })
+    } catch {
+      // silently fail
+    }
+  },
+
+  moveToolToCategory: async (toolId, categoryId) => {
+    const overrides = { ...get().toolCatOverrides, [toolId]: categoryId }
+    set({ toolCatOverrides: overrides })
+    try {
+      await api.saveToolCatOverrides(overrides)
+    } catch {
+      // silently fail
+    }
+  },
+
+  addUserCategory: async (cat) => {
+    const id = `user-${Date.now()}`
+    const newCat: Category = { ...cat, id }
+    const userCategories = [...get().userCategories, newCat]
+    set({ userCategories })
+    try {
+      await api.saveUserCategories(userCategories)
+    } catch {
+      // silently fail
+    }
+  },
+
+  updateCategoryCustom: async (id, patch) => {
+    const catCustomizations = { ...get().catCustomizations, [id]: { ...get().catCustomizations[id], ...patch } }
+    set({ catCustomizations })
+    try {
+      const { categoryOrder } = get()
+      const data: Record<string, Partial<Category> | string[]> = { ...catCustomizations, _order: categoryOrder }
+      await api.saveCatCustomizations(data)
+    } catch {
+      // silently fail
+    }
+  },
+
+  deleteUserCategory: async (id) => {
+    const userCategories = get().userCategories.filter((c) => c.id !== id)
+    // Revert any tool overrides pointing to this category
+    const overrides = { ...get().toolCatOverrides }
+    for (const toolId of Object.keys(overrides)) {
+      if (overrides[toolId] === id) {
+        delete overrides[toolId]
+      }
+    }
+    set({ userCategories, toolCatOverrides: overrides })
+    try {
+      await Promise.all([
+        api.saveUserCategories(userCategories),
+        api.saveToolCatOverrides(overrides),
+      ])
+    } catch {
+      // silently fail
+    }
+  },
+
+  saveCategoryOrder: async (orderedIds) => {
+    set({ categoryOrder: orderedIds })
+    try {
+      const { catCustomizations } = get()
+      const data: Record<string, Partial<Category> | string[]> = { ...catCustomizations, _order: orderedIds }
+      await api.saveCatCustomizations(data)
+    } catch {
+      // silently fail
+    }
+  },
+
+  // ─── Computed ───────────────────────────────────────────────────────────────
+
+  getAllCategories: () => {
+    const { catCustomizations, userCategories, categoryOrder } = get()
+    // Apply customizations to built-in categories
+    const builtIn: Category[] = CATEGORIES.map((c) => {
+      const custom = catCustomizations[c.id]
+      if (!custom) return c
+      return { ...c, ...custom }
+    })
+    const all = [...builtIn, ...userCategories]
+    if (categoryOrder.length === 0) return all
+    // Sort by order
+    const orderMap = new Map(categoryOrder.map((id, i) => [id, i]))
+    return [...all].sort((a, b) => {
+      const ia = orderMap.has(a.id) ? orderMap.get(a.id)! : Infinity
+      const ib = orderMap.has(b.id) ? orderMap.get(b.id)! : Infinity
+      return ia - ib
+    })
+  },
+
+  getEffectiveCategoryId: (toolId, defaultCatId) => {
+    return get().toolCatOverrides[toolId] || defaultCatId
+  },
+
   getFilteredTools: () => {
     const { tools, activeCategory, searchQuery } = get()
     return tools.filter((t) => {
-      const matchCat = activeCategory === 'all' || t.category === activeCategory
+      const effectiveCat = get().getEffectiveCategoryId(t.id, t.category)
+      const matchCat = activeCategory === 'all' || effectiveCat === activeCategory
       const q = searchQuery.toLowerCase()
       const matchSearch =
         !q ||
@@ -214,7 +350,7 @@ export const useToolStore = create<ToolStore>((set, get) => ({
   },
 
   getToolsByCategory: (categoryId) => {
-    return get().tools.filter((t) => t.category === categoryId)
+    return get().tools.filter((t) => get().getEffectiveCategoryId(t.id, t.category) === categoryId)
   },
 
   getEnabledCount: () => get().tools.filter((t) => t.isEnabled).length,

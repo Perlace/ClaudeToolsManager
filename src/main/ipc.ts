@@ -1,5 +1,6 @@
-import { ipcMain, shell, dialog } from 'electron'
-import { readFileSync } from 'fs'
+import { ipcMain, shell, dialog, app } from 'electron'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { join } from 'path'
 import { detectClaudeInstallation } from './services/claudeDetector'
 import { enableTool, disableTool, getEnabledTools, getCustomTools, saveCustomTool } from './services/toolManager'
 import { reloadClaudeSessions, isClaudeRunning } from './services/sessionManager'
@@ -80,5 +81,53 @@ export function setupIPC(): void {
     } catch {
       return { success: false, content: '' }
     }
+  })
+
+  // ─── Category data stores ───────────────────────────────────────────────────
+
+  const userData = app.getPath('userData')
+
+  const catOverridesPath = join(userData, 'tool-category-overrides.json')
+  const userCatsPath = join(userData, 'user-categories.json')
+  const catCustomPath = join(userData, 'category-customizations.json')
+
+  function readJSON<T>(filePath: string, fallback: T): T {
+    try {
+      if (!existsSync(filePath)) return fallback
+      return JSON.parse(readFileSync(filePath, 'utf8')) as T
+    } catch {
+      return fallback
+    }
+  }
+
+  function writeJSON(filePath: string, data: unknown): void {
+    writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8')
+  }
+
+  ipcMain.handle('get-tool-cat-overrides', () => {
+    return readJSON<Record<string, string>>(catOverridesPath, {})
+  })
+
+  ipcMain.handle('save-tool-cat-overrides', (_event, data: Record<string, string>) => {
+    writeJSON(catOverridesPath, data)
+    return { success: true }
+  })
+
+  ipcMain.handle('get-user-categories', () => {
+    return readJSON<unknown[]>(userCatsPath, [])
+  })
+
+  ipcMain.handle('save-user-categories', (_event, data: unknown[]) => {
+    writeJSON(userCatsPath, data)
+    return { success: true }
+  })
+
+  ipcMain.handle('get-cat-customizations', () => {
+    return readJSON<Record<string, unknown>>(catCustomPath, {})
+  })
+
+  ipcMain.handle('save-cat-customizations', (_event, data: Record<string, unknown>) => {
+    writeJSON(catCustomPath, data)
+    return { success: true }
   })
 }

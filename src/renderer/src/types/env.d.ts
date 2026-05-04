@@ -1,4 +1,4 @@
-import type { Tool, ClaudeInstallation } from './index'
+import type { Tool, ClaudeInstallation, Category } from './index'
 
 declare global {
   interface Window {
@@ -14,6 +14,12 @@ declare global {
       openSettingsFile: () => Promise<void>
       openClaudeMd: () => Promise<void>
       readClaudeMd: () => Promise<{ success: boolean; content: string }>
+      getToolCatOverrides: () => Promise<Record<string, string>>
+      saveToolCatOverrides: (data: Record<string, string>) => Promise<{ success: boolean }>
+      getUserCategories: () => Promise<Category[]>
+      saveUserCategories: (data: Category[]) => Promise<{ success: boolean }>
+      getCatCustomizations: () => Promise<Record<string, Partial<Category>>>
+      saveCatCustomizations: (data: Record<string, Partial<Category> | string[]>) => Promise<{ success: boolean }>
       minimizeWindow: () => void
       maximizeWindow: () => void
       closeWindow: () => void

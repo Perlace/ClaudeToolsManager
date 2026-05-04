@@ -17,6 +17,13 @@ const api = {
   openClaudeMd: (): Promise<void> => ipcRenderer.invoke('open-claude-md'),
   readClaudeMd: (): Promise<{ success: boolean; content: string }> => ipcRenderer.invoke('read-claude-md'),
 
+  getToolCatOverrides: (): Promise<Record<string, string>> => ipcRenderer.invoke('get-tool-cat-overrides'),
+  saveToolCatOverrides: (data: Record<string, string>): Promise<{ success: boolean }> => ipcRenderer.invoke('save-tool-cat-overrides', data),
+  getUserCategories: (): Promise<unknown[]> => ipcRenderer.invoke('get-user-categories'),
+  saveUserCategories: (data: unknown[]): Promise<{ success: boolean }> => ipcRenderer.invoke('save-user-categories', data),
+  getCatCustomizations: (): Promise<Record<string, unknown>> => ipcRenderer.invoke('get-cat-customizations'),
+  saveCatCustomizations: (data: Record<string, unknown>): Promise<{ success: boolean }> => ipcRenderer.invoke('save-cat-customizations', data),
+
   minimizeWindow: (): void => ipcRenderer.send('minimize-window'),
   maximizeWindow: (): void => ipcRenderer.send('maximize-window'),
   closeWindow: (): void => ipcRenderer.send('close-window'),

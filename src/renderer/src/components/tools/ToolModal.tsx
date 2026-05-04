@@ -1,9 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Lightbulb, Code2, Zap, Shield, BookOpen } from 'lucide-react'
+import { X, Lightbulb, Code2, Zap, BookOpen } from 'lucide-react'
 import { Toggle } from '../common/Toggle'
 import { TokenBadge, DifficultyBadge, TagBadge } from '../common/Badge'
 import { useToolStore } from '../../store/toolStore'
-import { CATEGORIES } from '../../data/tools'
 import type { Tool } from '../../types'
 
 interface ToolModalProps {
@@ -12,8 +11,10 @@ interface ToolModalProps {
 }
 
 export function ToolModal({ tool, onClose }: ToolModalProps) {
-  const { toggleTool, pendingChanges } = useToolStore()
-  const category = tool ? CATEGORIES.find((c) => c.id === tool.category) : null
+  const { toggleTool, pendingChanges, getAllCategories, getEffectiveCategoryId, moveToolToCategory } = useToolStore()
+  const allCategories = getAllCategories()
+  const effectiveCatId = tool ? getEffectiveCategoryId(tool.id, tool.category) : null
+  const category = effectiveCatId ? allCategories.find((c) => c.id === effectiveCatId) : null
 
   return (
     <AnimatePresence>
@@ -79,6 +80,25 @@ export function ToolModal({ tool, onClose }: ToolModalProps) {
                   {tool.tags.slice(0, 4).map((tag) => (
                     <TagBadge key={tag} tag={tag} />
                   ))}
+                </div>
+
+                {/* Category selector */}
+                <div className="flex items-center gap-3 mt-3 px-3 py-2.5 bg-surface border border-border rounded-xl">
+                  <span className="text-sm">📁</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-text mb-0.5">Catégorie</div>
+                    <select
+                      value={effectiveCatId || tool.category}
+                      onChange={(e) => moveToolToCategory(tool.id, e.target.value)}
+                      className="w-full text-xs text-text-secondary bg-transparent border-none outline-none cursor-pointer"
+                    >
+                      {allCategories.map((c) => (
+                        <option key={c.id} value={c.id} className="bg-card text-text">
+                          {c.icon} {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 

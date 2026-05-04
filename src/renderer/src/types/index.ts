@@ -39,7 +39,7 @@ export interface Tool {
 }
 
 export interface Category {
-  id: CategoryId
+  id: string
   name: string
   description: string
   icon: string
