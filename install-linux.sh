@@ -16,9 +16,11 @@ echo "  ║       Linux Installer                    ║"
 echo "  ╚══════════════════════════════════════════╝"
 echo ""
 
-# Detect if AppImage is present
-APPIMAGE=$(find "$(dirname "$0")/dist" -name "*.AppImage" 2>/dev/null | head -1)
-
+# Detect if AppImage is present — prefer x64, fallback to first found
+APPIMAGE=$(find "$(dirname "$0")/dist" -name "*x64*.AppImage" -o -name "*amd64*.AppImage" 2>/dev/null | head -1)
+if [ -z "$APPIMAGE" ]; then
+    APPIMAGE=$(find "$(dirname "$0")/dist" -name "*.AppImage" 2>/dev/null | grep -v arm64 | head -1)
+fi
 if [ -z "$APPIMAGE" ]; then
     echo "❌ Aucun AppImage trouvé dans dist/"
     echo ""
@@ -28,8 +30,9 @@ if [ -z "$APPIMAGE" ]; then
     exit 1
 fi
 
-APPIMAGE_NAME=$(basename "$APPIMAGE")
-echo "📦 AppImage détecté: $APPIMAGE_NAME"
+APPIMAGE_ORIG=$(basename "$APPIMAGE")
+APPIMAGE_DEST="claude-tools-manager.AppImage"
+echo "📦 AppImage détecté: $APPIMAGE_ORIG"
 echo ""
 
 # Create install directory
@@ -37,31 +40,34 @@ mkdir -p "$INSTALL_DIR"
 mkdir -p "$BIN_DIR"
 mkdir -p "$DESKTOP_DIR"
 
-# Copy AppImage
+# Copy AppImage — nom fixe sans espaces pour compatibilité .desktop
 echo "📂 Copie dans $INSTALL_DIR..."
-cp "$APPIMAGE" "$INSTALL_DIR/$APPIMAGE_NAME"
-chmod +x "$INSTALL_DIR/$APPIMAGE_NAME"
+cp "$APPIMAGE" "$INSTALL_DIR/$APPIMAGE_DEST"
+chmod +x "$INSTALL_DIR/$APPIMAGE_DEST"
+
+ICON_PATH="$HOME/.local/share/icons/hicolor/512x512/apps/claude-tools-manager.png"
 
 # Copy icon
 ICON_SRC="$(dirname "$0")/resources/icon.png"
 if [ -f "$ICON_SRC" ]; then
-    mkdir -p "$HOME/.local/share/icons/hicolor/512x512/apps"
-    cp "$ICON_SRC" "$HOME/.local/share/icons/hicolor/512x512/apps/claude-tools-manager.png"
+    mkdir -p "$(dirname "$ICON_PATH")"
+    cp "$ICON_SRC" "$ICON_PATH"
     echo "🎨 Icône installée"
 fi
 
 # Create launcher symlink
-ln -sf "$INSTALL_DIR/$APPIMAGE_NAME" "$BIN_DIR/claude-tools-manager"
+ln -sf "$INSTALL_DIR/$APPIMAGE_DEST" "$BIN_DIR/claude-tools-manager"
 echo "🔗 Launcher: $BIN_DIR/claude-tools-manager"
 
 # Create .desktop file for app menu
+# Exec et Icon utilisent des chemins absolus sans espaces (requis par XFCE/GNOME)
 cat > "$DESKTOP_DIR/claude-tools-manager.desktop" << DESKTOP
 [Desktop Entry]
 Version=1.1
 Name=Claude Tools Manager
 Comment=Gestionnaire d'outils Claude Code — 50 outils en 8 catégories
-Exec=$INSTALL_DIR/$APPIMAGE_NAME --no-sandbox
-Icon=claude-tools-manager
+Exec=$INSTALL_DIR/$APPIMAGE_DEST --no-sandbox
+Icon=$ICON_PATH
 Terminal=false
 Type=Application
 Categories=Development;Utility;
@@ -70,6 +76,13 @@ StartupWMClass=claude-tools-manager
 DESKTOP
 
 chmod +x "$DESKTOP_DIR/claude-tools-manager.desktop"
+
+# Create desktop shortcut
+DESKTOP_SHORTCUT="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")/ClaudeToolsManager.desktop"
+cp "$DESKTOP_DIR/claude-tools-manager.desktop" "$DESKTOP_SHORTCUT"
+chmod +x "$DESKTOP_SHORTCUT"
+gio set "$DESKTOP_SHORTCUT" metadata::trusted true 2>/dev/null || true
+echo "🖥️  Raccourci bureau: $DESKTOP_SHORTCUT"
 
 # Update desktop database
 if command -v update-desktop-database &>/dev/null; then
@@ -84,6 +97,7 @@ echo "✅ Installation terminée !"
 echo ""
 echo "  Lancer depuis le terminal  : claude-tools-manager"
 echo "  Lancer depuis le menu apps : chercher 'Claude Tools'"
+echo "  Lancer depuis le bureau    : double-clic sur l'icône"
 echo ""
 
 # Check if BIN_DIR is in PATH
