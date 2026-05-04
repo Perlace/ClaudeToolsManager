@@ -143,6 +143,41 @@ echo "🪟 $USED / $TOTAL tokens (\${PCT}%) · $RESET_STR"
     isEnabled: false,
     isImported: false,
   },
+  {
+    id: 'essential-claudesnap',
+    name: 'ClaudeSnap',
+    shortDescription: 'Visual feedback Chrome extension — annotate UI elements for Claude Code',
+    description:
+      'ClaudeSnap est une extension Chrome qui permet d\'annoter visuellement n\'importe quel élément d\'une page web et de générer un prompt structuré prêt à coller dans Claude Code. Le prompt inclut le sélecteur CSS unique, le chemin DOM, les classes/IDs, les styles calculés, les dimensions et ton annotation. Claude Code reçoit tout le contexte nécessaire pour appliquer les modifications sans avoir à copier le code.',
+    category: 'essential',
+    tags: ['chrome-extension', 'ui', 'visual', 'frontend', 'annotations', 'css'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '0%',
+    difficulty: 'easy',
+    config: {
+      claudeMd: `## ClaudeSnap — Visual UI Feedback
+
+When a prompt contains a ClaudeSnap block (annotated HTML element with CSS selector, DOM path, computed styles, and dimensions), apply these rules:
+
+- Use the provided CSS selector as the primary target — it is unique and precise
+- Apply the requested change (annotation) to the identified element only
+- Preserve all existing styles not mentioned in the annotation
+- If dimensions or computed styles conflict with the requested change, flag it before modifying
+- Prefer modifying existing CSS classes over adding inline styles
+- Confirm the change with the selector used so the user can verify in DevTools`,
+    },
+    tips: [
+      'Installe l\'extension depuis https://github.com/Perlace/claudesnap-extension',
+      'Active le mode inspection, survole les éléments (surlignage teal) et clique pour annoter',
+      'Décris ta modification dans la bulle d\'annotation, puis copie le prompt généré',
+      'Colle le prompt directement dans Claude Code — tout le contexte CSS/DOM est inclus',
+      'Le serveur MCP optionnel permet une connexion directe sans copier-coller',
+    ],
+    isEnabled: false,
+    isImported: false,
+    author: 'Perlace',
+    homepage: 'https://github.com/Perlace/claudesnap-extension',
+  },
   // ─── SUPER POWERS ──────────────────────────────────────────────────────────
   {
     id: 'sp-ruflo',
