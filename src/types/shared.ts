@@ -7,6 +7,7 @@ export type CategoryId =
   | 'responsive'
   | 'memory'
   | 'tokens'
+  | 'essential'
 
 export type TokenImpact = 'saves' | 'neutral' | 'costs'
 export type Difficulty = 'easy' | 'medium' | 'advanced'
@@ -15,6 +16,7 @@ export interface ToolConfig {
   settingsJson?: Record<string, unknown>
   claudeMd?: string
   commands?: Array<{ name: string; content: string }>
+  files?: Array<{ path: string; content: string; executable?: boolean }>
 }
 
 export interface Tool {

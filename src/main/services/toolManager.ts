@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync } from 'fs'
-import { join, basename } from 'path'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, chmodSync } from 'fs'
+import { join, basename, dirname } from 'path'
+import { homedir } from 'os'
 import { app } from 'electron'
 import { readClaudeSettings, writeClaudeSettings, readGlobalClaudeMd, writeGlobalClaudeMd } from './claudeDetector'
 import type { Tool } from '../../types/shared'
@@ -106,6 +107,15 @@ export function enableTool(tool: Tool, settingsPath: string, claudeMdPath: strin
       writeFileSync(join(dir, `${cmd.name}.md`), cmd.content, 'utf8')
     }
   }
+
+  if (tool.config?.files) {
+    for (const file of tool.config.files) {
+      const fullPath = file.path.replace(/^~/, homedir())
+      mkdirSync(dirname(fullPath), { recursive: true })
+      writeFileSync(fullPath, file.content, 'utf8')
+      if (file.executable) chmodSync(fullPath, 0o755)
+    }
+  }
 }
 
 export function disableTool(tool: Tool, settingsPath: string, claudeMdPath: string): void {
@@ -129,6 +139,13 @@ export function disableTool(tool: Tool, settingsPath: string, claudeMdPath: stri
     for (const cmd of tool.config.commands) {
       const p = join(dir, `${cmd.name}.md`)
       if (existsSync(p)) unlinkSync(p)
+    }
+  }
+
+  if (tool.config?.files) {
+    for (const file of tool.config.files) {
+      const fullPath = file.path.replace(/^~/, homedir())
+      if (existsSync(fullPath)) unlinkSync(fullPath)
     }
   }
 }

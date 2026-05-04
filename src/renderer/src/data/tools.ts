@@ -2,6 +2,14 @@ import type { Tool, Category } from '../types'
 
 export const CATEGORIES: Category[] = [
   {
+    id: 'essential',
+    name: 'Essential Plugins',
+    description: 'Plugins indispensables pour améliorer Claude Code au quotidien',
+    icon: '🌟',
+    color: '#f59e0b',
+    gradient: 'from-yellow-400 to-orange-500',
+  },
+  {
     id: 'superpowers',
     name: 'Super Powers',
     description: 'Capacités avancées et augmentation de Claude Code',
@@ -68,6 +76,73 @@ export const CATEGORIES: Category[] = [
 ]
 
 export const TOOLS: Tool[] = [
+  // ─── ESSENTIAL PLUGINS ─────────────────────────────────────────────────────
+  {
+    id: 'essential-statusline',
+    name: 'Token Usage Statusline',
+    shortDescription: 'Barre de statut : tokens utilisés, dispo et heure de reset',
+    description:
+      'Affiche en temps réel en bas de Claude Code : le nombre de tokens utilisés, le total disponible (200k), le pourcentage consommé, et une estimation de l\'heure à laquelle le contexte sera plein. Le script calcule le taux de consommation au fil de la conversation pour affiner la prédiction.',
+    category: 'essential',
+    tags: ['statusline', 'tokens', 'context', 'monitoring', 'ui'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '0%',
+    difficulty: 'easy',
+    config: {
+      settingsJson: {
+        statusLine: {
+          type: 'command',
+          command: '~/.claude/statusline.sh',
+        },
+      },
+      files: [
+        {
+          path: '~/.claude/statusline.sh',
+          executable: true,
+          content: `#!/bin/bash
+INPUT=$(cat)
+
+USED=$(echo "$INPUT" | jq -r '.context_window.total_input_tokens // 0')
+TOTAL=$(echo "$INPUT" | jq -r '.context_window.context_window_size // 200000')
+PCT=$(echo "$INPUT" | jq -r '(.context_window.used_percentage // 0) | floor')
+
+SESSION_FILE="/tmp/ctm_session_\${USER}"
+NOW=$(date +%s)
+
+if [ ! -f "$SESSION_FILE" ]; then
+  echo "$NOW $USED" > "$SESSION_FILE"
+  RESET_STR="reset ~--:--"
+else
+  read START_TIME START_USED < "$SESSION_FILE"
+  ELAPSED=$((NOW - START_TIME))
+  DELTA=$((USED - START_USED))
+
+  if [ "$DELTA" -gt 100 ] && [ "$ELAPSED" -gt 0 ]; then
+    REMAINING=$((TOTAL - USED))
+    SECONDS_LEFT=$(awk "BEGIN { printf \\"%d\\", ($REMAINING / $DELTA) * $ELAPSED }")
+    RESET_EPOCH=$((NOW + SECONDS_LEFT))
+    RESET_TIME=$(date -d "@$RESET_EPOCH" +"%H:%M" 2>/dev/null || date -r "$RESET_EPOCH" +"%H:%M" 2>/dev/null)
+    RESET_STR="reset ~$RESET_TIME"
+  else
+    RESET_STR="reset ~--:--"
+  fi
+fi
+
+echo "🪟 $USED / $TOTAL tokens (\${PCT}%) · $RESET_STR"
+`,
+        },
+      ],
+    },
+    tips: [
+      'La barre apparaît en bas de Claude Code dès le premier message après activation',
+      'L\'heure de reset est une estimation basée sur ton rythme de consommation actuel',
+      'L\'estimation s\'affine au fil de la conversation',
+      'Nécessite jq installé sur ton système (sudo apt install jq)',
+      'Désactiver le plugin supprime automatiquement le script et la config',
+    ],
+    isEnabled: false,
+    isImported: false,
+  },
   // ─── SUPER POWERS ──────────────────────────────────────────────────────────
   {
     id: 'sp-ruflo',
