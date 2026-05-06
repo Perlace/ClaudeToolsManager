@@ -1,11 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Tool, ClaudeInstallation } from '../types/shared'
+import type { Tool, ClaudeInstallation, Profile } from '../types/shared'
 
 const api = {
   detectClaude: (): Promise<ClaudeInstallation> => ipcRenderer.invoke('detect-claude'),
-  getEnabledTools: (): Promise<string[]> => ipcRenderer.invoke('get-enabled-tools'),
-  toggleTool: (tool: Tool, enabled: boolean): Promise<{ success: boolean; error?: string }> =>
-    ipcRenderer.invoke('toggle-tool', tool, enabled),
+  getEnabledTools: (profileId?: string): Promise<string[]> => ipcRenderer.invoke('get-enabled-tools', profileId),
+  toggleTool: (tool: Tool, enabled: boolean, profileId?: string): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('toggle-tool', tool, enabled, profileId),
+
+  // Profiles
+  getProfiles: (): Promise<Profile[]> => ipcRenderer.invoke('get-profiles'),
+  saveProfiles: (profiles: Profile[]): Promise<{ success: boolean }> => ipcRenderer.invoke('save-profiles', profiles),
+  getActiveProfileId: (): Promise<string> => ipcRenderer.invoke('get-active-profile-id'),
+  setActiveProfileId: (id: string | null): Promise<{ success: boolean }> => ipcRenderer.invoke('set-active-profile-id', id),
+  detectActiveProfile: (): Promise<string | null> => ipcRenderer.invoke('detect-active-profile'),
   reloadSessions: (): Promise<{ success: boolean; method: string; message: string }> =>
     ipcRenderer.invoke('reload-sessions'),
   isClaudeRunning: (): Promise<boolean> => ipcRenderer.invoke('is-claude-running'),

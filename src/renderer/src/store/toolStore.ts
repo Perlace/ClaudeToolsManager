@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { TOOLS, CATEGORIES } from '../data/tools'
-import type { Tool, Category, ClaudeInstallation, ToastMessage } from '../types'
+import type { Tool, Category, ClaudeInstallation, ToastMessage, Profile } from '../types'
 
 interface ToolStore {
   tools: Tool[]
@@ -12,6 +12,11 @@ interface ToolStore {
   isLoading: boolean
   pendingChanges: Set<string>
   theme: 'dark' | 'light'
+
+  // Profiles
+  profiles: Profile[]
+  activeProfileId: string
+  detectedProfileId: string | null
 
   // Category state
   toolCatOverrides: Record<string, string>
@@ -31,6 +36,13 @@ interface ToolStore {
   reloadSessions: () => Promise<void>
   detectClaude: () => Promise<void>
   toggleTheme: () => void
+
+  // Profile actions
+  loadProfiles: () => Promise<void>
+  switchProfile: (id: string, manual?: boolean) => Promise<void>
+  saveProfile: (profile: Profile) => Promise<void>
+  deleteProfile: (id: string) => Promise<void>
+  autoDetectProfile: () => Promise<void>
 
   // Category actions
   loadCategoryData: () => Promise<void>
@@ -61,6 +73,11 @@ export const useToolStore = create<ToolStore>((set, get) => ({
   isLoading: false,
   pendingChanges: new Set(),
   theme: (localStorage.getItem('theme') as 'dark' | 'light') || 'dark',
+
+  // Profiles
+  profiles: [],
+  activeProfileId: 'perso',
+  detectedProfileId: null,
 
   // Category state
   toolCatOverrides: {},
@@ -103,7 +120,7 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     }))
 
     try {
-      const result = await api.toggleTool({ ...tool, isEnabled: newEnabled }, newEnabled)
+      const result = await api.toggleTool({ ...tool, isEnabled: newEnabled }, newEnabled, get().activeProfileId)
       if (!result.success) {
         set((s) => ({
           tools: s.tools.map((t) => (t.id === toolId ? { ...t, isEnabled: !newEnabled } : t)),
@@ -138,7 +155,8 @@ export const useToolStore = create<ToolStore>((set, get) => ({
 
   loadEnabledTools: async () => {
     try {
-      const enabledIds = await api.getEnabledTools()
+      const { activeProfileId } = get()
+      const enabledIds = await api.getEnabledTools(activeProfileId)
       set((s) => ({
         tools: s.tools.map((t) => ({ ...t, isEnabled: enabledIds.includes(t.id) })),
       }))
@@ -220,6 +238,68 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     const next = get().theme === 'dark' ? 'light' : 'dark'
     localStorage.setItem('theme', next)
     set({ theme: next })
+  },
+
+  // ─── Profile actions ─────────────────────────────────────────────────────────
+
+  loadProfiles: async () => {
+    try {
+      const [profiles, activeProfileId] = await Promise.all([
+        api.getProfiles(),
+        api.getActiveProfileId(),
+      ])
+      set({ profiles, activeProfileId })
+    } catch {
+      // silently fail
+    }
+  },
+
+  switchProfile: async (id, manual = true) => {
+    try {
+      if (manual) await api.setActiveProfileId(id)
+      set({ activeProfileId: id })
+      const enabledIds = await api.getEnabledTools(id)
+      set((s) => ({
+        tools: s.tools.map((t) => ({ ...t, isEnabled: enabledIds.includes(t.id) })),
+      }))
+      const profile = get().profiles.find((p) => p.id === id)
+      get().addToast({
+        type: 'info',
+        title: `Profil "${profile?.name || id}"`,
+        message: 'Outils rechargés pour ce profil.',
+      })
+    } catch (err) {
+      get().addToast({ type: 'error', title: 'Erreur profil', message: String(err) })
+    }
+  },
+
+  saveProfile: async (profile) => {
+    const profiles = get().profiles
+    const idx = profiles.findIndex((p) => p.id === profile.id)
+    const updated = idx >= 0
+      ? profiles.map((p, i) => (i === idx ? profile : p))
+      : [...profiles, profile]
+    set({ profiles: updated })
+    await api.saveProfiles(updated)
+  },
+
+  deleteProfile: async (id) => {
+    const profiles = get().profiles.filter((p) => p.id !== id)
+    set({ profiles })
+    await api.saveProfiles(profiles)
+    if (get().activeProfileId === id && profiles.length > 0) {
+      await get().switchProfile(profiles[0].id)
+    }
+  },
+
+  autoDetectProfile: async () => {
+    try {
+      const detected = await api.detectActiveProfile()
+      set({ detectedProfileId: detected })
+      if (detected && detected !== get().activeProfileId) {
+        await get().switchProfile(detected, false)
+      }
+    } catch { /* silently fail */ }
   },
 
   // ─── Category actions ───────────────────────────────────────────────────────

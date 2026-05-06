@@ -47,6 +47,17 @@ export interface Category {
   gradient: string
 }
 
+export interface Profile {
+  id: string
+  name: string
+  configDir: string
+  settingsPath: string
+  claudeMdPath: string
+  commandsPath: string
+  color: string
+  enabledTools: string[]
+}
+
 export interface ClaudeInstallation {
   found: boolean
   version?: string

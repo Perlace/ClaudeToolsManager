@@ -3,25 +3,18 @@ import { join, basename, dirname } from 'path'
 import { homedir } from 'os'
 import { app } from 'electron'
 import { readClaudeSettings, writeClaudeSettings, readGlobalClaudeMd, writeGlobalClaudeMd } from './claudeDetector'
-import type { Tool } from '../../types/shared'
+import { getProfileById, updateProfileTools } from './profileManager'
+import type { Tool, Profile } from '../../types/shared'
 
 const CLAUDE_MD_SECTION_START = '<!-- CLAUDE-TOOLS-MANAGER:START -->'
 const CLAUDE_MD_SECTION_END = '<!-- CLAUDE-TOOLS-MANAGER:END -->'
-const ENABLED_TOOLS_FILE = join(app.getPath('userData'), 'enabled-tools.json')
 const CUSTOM_TOOLS_FILE = join(app.getPath('userData'), 'custom-tools.json')
 
-export function getEnabledTools(): string[] {
-  if (!existsSync(ENABLED_TOOLS_FILE)) return []
-  try {
-    return JSON.parse(readFileSync(ENABLED_TOOLS_FILE, 'utf8'))
-  } catch {
-    return []
-  }
+export function getEnabledTools(profileId: string): string[] {
+  const profile = getProfileById(profileId)
+  return profile?.enabledTools || []
 }
 
-function saveEnabledTools(ids: string[]): void {
-  writeFileSync(ENABLED_TOOLS_FILE, JSON.stringify(ids, null, 2), 'utf8')
-}
 
 export function getCustomTools(): Tool[] {
   if (!existsSync(CUSTOM_TOOLS_FILE)) return []
@@ -81,12 +74,13 @@ function removeSectionClaudeMd(existing: string, toolId: string): string {
   return existing.slice(0, start).trimEnd() + '\n' + existing.slice(end + endTag.length)
 }
 
-export function enableTool(tool: Tool, settingsPath: string, claudeMdPath: string): void {
-  const enabled = getEnabledTools()
+export function enableTool(tool: Tool, profile: Profile): void {
+  const enabled = profile.enabledTools
   if (!enabled.includes(tool.id)) {
-    enabled.push(tool.id)
-    saveEnabledTools(enabled)
+    updateProfileTools(profile.id, [...enabled, tool.id])
   }
+  const settingsPath = profile.settingsPath
+  const claudeMdPath = profile.claudeMdPath
 
   if (tool.config?.settingsJson) {
     const settings = readClaudeSettings(settingsPath) as Record<string, unknown>
@@ -101,7 +95,7 @@ export function enableTool(tool: Tool, settingsPath: string, claudeMdPath: strin
   }
 
   if (tool.config?.commands) {
-    const dir = join(settingsPath.replace(/[/\\][^/\\]+$/, ''), 'commands')
+    const dir = profile.commandsPath
     mkdirSync(dir, { recursive: true })
     for (const cmd of tool.config.commands) {
       writeFileSync(join(dir, `${cmd.name}.md`), cmd.content, 'utf8')
@@ -118,9 +112,10 @@ export function enableTool(tool: Tool, settingsPath: string, claudeMdPath: strin
   }
 }
 
-export function disableTool(tool: Tool, settingsPath: string, claudeMdPath: string): void {
-  const enabled = getEnabledTools().filter((id) => id !== tool.id)
-  saveEnabledTools(enabled)
+export function disableTool(tool: Tool, profile: Profile): void {
+  updateProfileTools(profile.id, profile.enabledTools.filter((id) => id !== tool.id))
+  const settingsPath = profile.settingsPath
+  const claudeMdPath = profile.claudeMdPath
 
   if (tool.config?.settingsJson) {
     const settings = readClaudeSettings(settingsPath) as Record<string, unknown>
@@ -135,7 +130,7 @@ export function disableTool(tool: Tool, settingsPath: string, claudeMdPath: stri
   }
 
   if (tool.config?.commands) {
-    const dir = join(settingsPath.replace(/[/\\][^/\\]+$/, ''), 'commands')
+    const dir = profile.commandsPath
     for (const cmd of tool.config.commands) {
       const p = join(dir, `${cmd.name}.md`)
       if (existsSync(p)) unlinkSync(p)

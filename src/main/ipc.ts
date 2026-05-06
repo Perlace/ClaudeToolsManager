@@ -4,7 +4,12 @@ import { join } from 'path'
 import { detectClaudeInstallation } from './services/claudeDetector'
 import { enableTool, disableTool, getEnabledTools, getCustomTools, saveCustomTool } from './services/toolManager'
 import { reloadClaudeSessions, isClaudeRunning } from './services/sessionManager'
-import type { Tool } from '../types/shared'
+import {
+  getProfiles, saveProfiles, getProfileById,
+  resolveActiveProfileId, setManualActiveProfileId,
+  detectActiveProfileFromProcess,
+} from './services/profileManager'
+import type { Tool, Profile } from '../types/shared'
 
 let claudeInfo = detectClaudeInstallation()
 
@@ -14,21 +19,51 @@ export function setupIPC(): void {
     return claudeInfo
   })
 
-  ipcMain.handle('get-enabled-tools', () => {
-    return getEnabledTools()
+  ipcMain.handle('get-enabled-tools', (_event, profileId?: string) => {
+    const id = profileId || resolveActiveProfileId(getProfiles())
+    return getEnabledTools(id)
   })
 
-  ipcMain.handle('toggle-tool', async (_event, tool: Tool, enabled: boolean) => {
+  ipcMain.handle('toggle-tool', async (_event, tool: Tool, enabled: boolean, profileId?: string) => {
     try {
+      const id = profileId || resolveActiveProfileId(getProfiles())
+      const profile = getProfileById(id)
+      if (!profile) return { success: false, error: `Profil "${id}" introuvable` }
       if (enabled) {
-        enableTool(tool, claudeInfo.settingsPath, claudeInfo.globalClaudeMdPath)
+        enableTool(tool, profile)
       } else {
-        disableTool(tool, claudeInfo.settingsPath, claudeInfo.globalClaudeMdPath)
+        disableTool(tool, profile)
       }
       return { success: true }
     } catch (err) {
       return { success: false, error: String(err) }
     }
+  })
+
+  // ─── Profile handlers ────────────────────────────────────────────────────────
+
+  ipcMain.handle('get-profiles', () => {
+    return getProfiles()
+  })
+
+  ipcMain.handle('save-profiles', (_event, profiles: Profile[]) => {
+    saveProfiles(profiles)
+    return { success: true }
+  })
+
+  ipcMain.handle('get-active-profile-id', () => {
+    const profiles = getProfiles()
+    return resolveActiveProfileId(profiles)
+  })
+
+  ipcMain.handle('set-active-profile-id', (_event, id: string | null) => {
+    setManualActiveProfileId(id)
+    return { success: true }
+  })
+
+  ipcMain.handle('detect-active-profile', () => {
+    const profiles = getProfiles()
+    return detectActiveProfileFromProcess(profiles)
   })
 
   ipcMain.handle('reload-sessions', () => {

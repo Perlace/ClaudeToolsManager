@@ -1,11 +1,83 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode } from 'lucide-react'
+import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode, ChevronDown, User, Zap } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
 import { ClaudeMdModal } from './ClaudeMdModal'
-import type { ToastMessage } from '../types'
+import type { ToastMessage, Profile } from '../types'
 
 const api = window.electronAPI
+
+const PROFILE_COLORS: Record<string, string> = {
+  blue: 'bg-blue-500',
+  purple: 'bg-purple-500',
+  green: 'bg-green-500',
+  orange: 'bg-orange-500',
+  red: 'bg-red-500',
+  cyan: 'bg-cyan-500',
+}
+
+function ProfileSelector() {
+  const { profiles, activeProfileId, detectedProfileId, switchProfile } = useToolStore()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const active = profiles.find((p) => p.id === activeProfileId)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  if (!profiles.length) return null
+
+  return (
+    <div ref={ref} className="relative no-drag">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border hover:bg-card transition-all text-xs"
+        title="Changer de profil"
+      >
+        <div className={`w-2 h-2 rounded-full ${PROFILE_COLORS[active?.color || 'blue'] || 'bg-blue-500'}`} />
+        <span className="text-text-secondary font-medium">{active?.name || 'Profil'}</span>
+        {detectedProfileId && detectedProfileId === activeProfileId && (
+          <Zap size={10} className="text-yellow-400" title="Détecté automatiquement" />
+        )}
+        <ChevronDown size={11} className={`text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.12 }}
+            className="absolute top-full right-0 mt-1 w-48 bg-card border border-border rounded-2xl shadow-card-hover z-50 overflow-hidden py-1"
+          >
+            {profiles.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => { switchProfile(p.id); setOpen(false) }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-surface transition-all ${p.id === activeProfileId ? 'text-text font-semibold' : 'text-text-secondary'}`}
+              >
+                <div className={`w-2 h-2 rounded-full shrink-0 ${PROFILE_COLORS[p.color] || 'bg-blue-500'}`} />
+                <span className="flex-1 text-left">{p.name}</span>
+                {detectedProfileId === p.id && (
+                  <Zap size={10} className="text-yellow-400 shrink-0" title="Session active détectée" />
+                )}
+                {p.id === activeProfileId && (
+                  <CheckCircle size={11} className="text-green shrink-0" />
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export function Header() {
   const { searchQuery, setSearchQuery, importTool, reloadSessions, toasts, removeToast, claudeInfo, detectClaude, isLoading, theme, toggleTheme } = useToolStore()
@@ -62,6 +134,9 @@ export function Header() {
                 : 'Non détecté'}
             </span>
           </button>
+
+          {/* Profile selector */}
+          <ProfileSelector />
 
           {/* CLAUDE.md viewer */}
           <button
