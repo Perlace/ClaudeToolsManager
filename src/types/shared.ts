@@ -47,6 +47,11 @@ export interface Category {
   gradient: string
 }
 
+export interface ProfilePermissions {
+  allow: string[]
+  deny: string[]
+}
+
 export interface Profile {
   id: string
   name: string
@@ -55,7 +60,9 @@ export interface Profile {
   claudeMdPath: string
   commandsPath: string
   color: string
+  theme: 'dark' | 'light'
   enabledTools: string[]
+  permissions: ProfilePermissions
 }
 
 export interface ClaudeInstallation {

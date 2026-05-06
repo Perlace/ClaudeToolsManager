@@ -7,8 +7,9 @@ import { reloadClaudeSessions, isClaudeRunning } from './services/sessionManager
 import {
   getProfiles, saveProfiles, getProfileById,
   resolveActiveProfileId, setManualActiveProfileId,
-  detectActiveProfileFromProcess,
+  detectActiveProfileFromProcess, applyProfilePermissions,
 } from './services/profileManager'
+import { createProfileWindow } from './index'
 import type { Tool, Profile } from '../types/shared'
 
 let claudeInfo = detectClaudeInstallation()
@@ -48,6 +49,7 @@ export function setupIPC(): void {
 
   ipcMain.handle('save-profiles', (_event, profiles: Profile[]) => {
     saveProfiles(profiles)
+    for (const profile of profiles) applyProfilePermissions(profile)
     return { success: true }
   })
 
@@ -64,6 +66,15 @@ export function setupIPC(): void {
   ipcMain.handle('detect-active-profile', () => {
     const profiles = getProfiles()
     return detectActiveProfileFromProcess(profiles)
+  })
+
+  ipcMain.handle('open-profile-window', (_event, profileId: string) => {
+    try {
+      createProfileWindow(profileId)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: String(err) }
+    }
   })
 
   ipcMain.handle('reload-sessions', () => {

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { homedir, platform } from 'os'
 import { execSync } from 'child_process'
@@ -29,7 +29,9 @@ function buildDefaultProfiles(): Profile[] {
       claudeMdPath: join(home, 'CLAUDE.md'),
       commandsPath: join(home, '.claude', 'commands'),
       color: 'blue',
+      theme: 'dark',
       enabledTools: migrateExistingTools(),
+      permissions: { allow: [], deny: [] },
     },
     {
       id: 'pro',
@@ -39,7 +41,9 @@ function buildDefaultProfiles(): Profile[] {
       claudeMdPath: join(home, 'Documents', 'claude-pro', 'CLAUDE.md'),
       commandsPath: join(home, '.claude-pro', 'commands'),
       color: 'purple',
+      theme: 'dark',
       enabledTools: [],
+      permissions: { allow: [], deny: [] },
     },
   ]
 }
@@ -72,6 +76,28 @@ export function updateProfileTools(profileId: string, enabledTools: string[]): v
     profiles[idx].enabledTools = enabledTools
     saveProfiles(profiles)
   }
+}
+
+export function applyProfilePermissions(profile: Profile): void {
+  try {
+    const { settingsPath, permissions } = profile
+    if (!permissions) return
+    const dir = settingsPath.replace(/[/\\][^/\\]+$/, '')
+    mkdirSync(dir, { recursive: true })
+    let settings: Record<string, unknown> = {}
+    if (existsSync(settingsPath)) {
+      try { settings = JSON.parse(readFileSync(settingsPath, 'utf8')) } catch { /* ignore */ }
+    }
+    if (permissions.allow.length === 0 && permissions.deny.length === 0) {
+      delete settings['permissions']
+    } else {
+      settings['permissions'] = {
+        ...(permissions.allow.length > 0 ? { allow: permissions.allow } : {}),
+        ...(permissions.deny.length > 0 ? { deny: permissions.deny } : {}),
+      }
+    }
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8')
+  } catch { /* silently fail if path doesn't exist yet */ }
 }
 
 export function getManualActiveProfileId(): string | null {

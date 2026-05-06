@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode, ChevronDown, User, Zap } from 'lucide-react'
+import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode, ChevronDown, ExternalLink, Zap } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
 import { ClaudeMdModal } from './ClaudeMdModal'
 import type { ToastMessage, Profile } from '../types'
@@ -57,20 +57,28 @@ function ProfileSelector() {
             className="absolute top-full right-0 mt-1 w-48 bg-card border border-border rounded-2xl shadow-card-hover z-50 overflow-hidden py-1"
           >
             {profiles.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => { switchProfile(p.id); setOpen(false) }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-surface transition-all ${p.id === activeProfileId ? 'text-text font-semibold' : 'text-text-secondary'}`}
-              >
-                <div className={`w-2 h-2 rounded-full shrink-0 ${PROFILE_COLORS[p.color] || 'bg-blue-500'}`} />
-                <span className="flex-1 text-left">{p.name}</span>
-                {detectedProfileId === p.id && (
-                  <Zap size={10} className="text-yellow-400 shrink-0" title="Session active détectée" />
-                )}
-                {p.id === activeProfileId && (
-                  <CheckCircle size={11} className="text-green shrink-0" />
-                )}
-              </button>
+              <div key={p.id} className="flex items-center group">
+                <button
+                  onClick={() => { switchProfile(p.id); setOpen(false) }}
+                  className={`flex-1 flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-surface transition-all ${p.id === activeProfileId ? 'text-text font-semibold' : 'text-text-secondary'}`}
+                >
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${PROFILE_COLORS[p.color] || 'bg-blue-500'}`} />
+                  <span className="flex-1 text-left">{p.name}</span>
+                  {detectedProfileId === p.id && (
+                    <Zap size={10} className="text-yellow-400 shrink-0" title="Session active détectée" />
+                  )}
+                  {p.id === activeProfileId && (
+                    <CheckCircle size={11} className="text-green shrink-0" />
+                  )}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); api.openProfileWindow(p.id); setOpen(false) }}
+                  title="Ouvrir dans une nouvelle fenêtre"
+                  className="opacity-0 group-hover:opacity-100 px-2 py-2 text-text-muted hover:text-text transition-all"
+                >
+                  <ExternalLink size={11} />
+                </button>
+              </div>
             ))}
           </motion.div>
         )}

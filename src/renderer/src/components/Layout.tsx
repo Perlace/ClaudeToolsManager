@@ -1,15 +1,16 @@
 import { useState } from 'react'
-import { LayoutDashboard, Wrench, Settings as SettingsIcon } from 'lucide-react'
+import { LayoutDashboard, Wrench, Settings as SettingsIcon, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { Dashboard } from '../pages/Dashboard'
 import { ToolsPage } from '../pages/ToolsPage'
 import { Settings } from '../pages/Settings'
+import { Permissions } from '../pages/Permissions'
 import { CategoryManagerModal } from './CategoryManagerModal'
 import { useToolStore } from '../store/toolStore'
 
-type Page = 'dashboard' | 'tools' | 'settings'
+type Page = 'dashboard' | 'tools' | 'settings' | 'permissions'
 
 export function Layout() {
   const [page, setPage] = useState<Page>('dashboard')
@@ -37,6 +38,12 @@ export function Layout() {
             active={page === 'tools'}
             onClick={() => setPage('tools')}
           />
+          <NavBtn
+            icon={<ShieldCheck size={18} />}
+            label="Permissions"
+            active={page === 'permissions'}
+            onClick={() => setPage('permissions')}
+          />
           <div className="flex-1" />
           <NavBtn
             icon={<SettingsIcon size={18} />}
@@ -56,6 +63,7 @@ export function Layout() {
           {page === 'dashboard' && <Dashboard />}
           {page === 'tools' && <ToolsPage />}
           {page === 'settings' && <Settings />}
+          {page === 'permissions' && <Permissions />}
         </main>
       </div>
 

@@ -263,11 +263,20 @@ export const useToolStore = create<ToolStore>((set, get) => ({
         tools: s.tools.map((t) => ({ ...t, isEnabled: enabledIds.includes(t.id) })),
       }))
       const profile = get().profiles.find((p) => p.id === id)
-      get().addToast({
-        type: 'info',
-        title: `Profil "${profile?.name || id}"`,
-        message: 'Outils rechargés pour ce profil.',
-      })
+      // Apply profile theme
+      if (profile?.theme) {
+        const next = profile.theme
+        localStorage.setItem('theme', next)
+        set({ theme: next })
+        document.documentElement.classList.toggle('light', next === 'light')
+      }
+      if (manual) {
+        get().addToast({
+          type: 'info',
+          title: `Profil "${profile?.name || id}"`,
+          message: 'Outils et thème rechargés.',
+        })
+      }
     } catch (err) {
       get().addToast({ type: 'error', title: 'Erreur profil', message: String(err) })
     }
