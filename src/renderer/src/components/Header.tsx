@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode, ChevronDown, ExternalLink, Zap } from 'lucide-react'
+import { Search, RefreshCw, Upload, Minus, Square, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, FileCode, ChevronDown, ExternalLink, Zap, ScanSearch } from 'lucide-react'
 import { useToolStore } from '../store/toolStore'
 import { ClaudeMdModal } from './ClaudeMdModal'
 import type { ToastMessage, Profile } from '../types'
@@ -17,7 +17,7 @@ const PROFILE_COLORS: Record<string, string> = {
 }
 
 function ProfileSelector() {
-  const { profiles, activeProfileId, detectedProfileId, switchProfile } = useToolStore()
+  const { profiles, activeProfileId, detectedProfileId, switchProfile, loadProfiles } = useToolStore()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const active = profiles.find((p) => p.id === activeProfileId)
@@ -56,6 +56,14 @@ function ProfileSelector() {
             transition={{ duration: 0.12 }}
             className="absolute top-full right-0 mt-1 w-48 bg-card border border-border rounded-2xl shadow-card-hover z-50 overflow-hidden py-1"
           >
+            <button
+              onClick={async () => { await loadProfiles(); setOpen(false) }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-text-muted hover:bg-surface hover:text-text transition-all border-b border-border mb-1"
+            >
+              <ScanSearch size={11} />
+              <span>Détecter les sessions</span>
+            </button>
+
             {profiles.map((p) => (
               <div key={p.id} className="flex items-center group">
                 <button

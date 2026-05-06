@@ -1,9 +1,79 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'fs'
+import { join, basename } from 'path'
 import { homedir, platform } from 'os'
 import { execSync } from 'child_process'
 import { app } from 'electron'
 import type { Profile } from '../../types/shared'
+
+const PROFILE_COLORS = ['blue', 'purple', 'green', 'orange', 'cyan', 'red']
+
+function configDirToName(configDir: string): string {
+  const base = basename(configDir)
+  if (base === '.claude') return 'Principal'
+  const suffix = base.replace(/^\.claude[-_]?/, '')
+  return suffix ? suffix.charAt(0).toUpperCase() + suffix.slice(1) : base
+}
+
+function configDirToId(configDir: string): string {
+  return basename(configDir).replace(/^\./, '').replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'principal'
+}
+
+function buildProfile(configDir: string, colorIndex: number, existingTools: string[] = []): Profile {
+  const home = homedir()
+  const claudeMdPath = configDir === join(home, '.claude')
+    ? join(home, 'CLAUDE.md')
+    : join(configDir, 'CLAUDE.md')
+  return {
+    id: configDirToId(configDir),
+    name: configDirToName(configDir),
+    configDir: configDir.replace(home, '~'),
+    settingsPath: join(configDir, 'settings.json'),
+    claudeMdPath,
+    commandsPath: join(configDir, 'commands'),
+    color: PROFILE_COLORS[colorIndex % PROFILE_COLORS.length],
+    theme: 'dark',
+    enabledTools: existingTools,
+    permissions: { allow: [], deny: [] },
+  }
+}
+
+function discoverConfigDirs(): string[] {
+  const home = homedir()
+  const found = new Set<string>()
+
+  // 1. Default ~/.claude
+  found.add(join(home, '.claude'))
+
+  // 2. Scan home for .claude-* or .claude_* dirs
+  try {
+    for (const entry of readdirSync(home)) {
+      if (/^\.claude[-_].+/.test(entry)) {
+        const full = join(home, entry)
+        if (statSync(full).isDirectory()) found.add(full)
+      }
+    }
+  } catch { /* ignore */ }
+
+  // 3. Running processes with CLAUDE_CONFIG_DIR
+  try {
+    const pids = execSync('pgrep -f "node.*claude" 2>/dev/null || true', {
+      encoding: 'utf8', shell: true,
+    }).trim().split('\n').filter(Boolean)
+
+    for (const pid of pids) {
+      try {
+        const env = readFileSync(`/proc/${pid}/environ`, 'utf8').replace(/\0/g, '\n')
+        const match = env.match(/CLAUDE_CONFIG_DIR=([^\n]+)/)
+        if (match) {
+          const dir = match[1].trim().replace(/^~/, home)
+          if (existsSync(dir)) found.add(dir)
+        }
+      } catch { /* skip */ }
+    }
+  } catch { /* ignore */ }
+
+  return Array.from(found)
+}
 
 const PROFILES_FILE = join(app.getPath('userData'), 'profiles.json')
 const ACTIVE_PROFILE_FILE = join(app.getPath('userData'), 'active-profile.json')
@@ -19,33 +89,36 @@ function migrateExistingTools(): string[] {
 }
 
 function buildDefaultProfiles(): Profile[] {
+  const dirs = discoverConfigDirs()
+  return dirs.map((dir, i) => buildProfile(
+    dir,
+    i,
+    i === 0 ? migrateExistingTools() : []
+  ))
+}
+
+export function syncDiscoveredProfiles(): Profile[] {
+  const existing = getProfiles()
   const home = homedir()
-  return [
-    {
-      id: 'perso',
-      name: 'Personnel',
-      configDir: '~/.claude',
-      settingsPath: join(home, '.claude', 'settings.json'),
-      claudeMdPath: join(home, 'CLAUDE.md'),
-      commandsPath: join(home, '.claude', 'commands'),
-      color: 'blue',
-      theme: 'dark',
-      enabledTools: migrateExistingTools(),
-      permissions: { allow: [], deny: [] },
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      configDir: '~/.claude-pro',
-      settingsPath: join(home, '.claude-pro', 'settings.json'),
-      claudeMdPath: join(home, 'Documents', 'claude-pro', 'CLAUDE.md'),
-      commandsPath: join(home, '.claude-pro', 'commands'),
-      color: 'purple',
-      theme: 'dark',
-      enabledTools: [],
-      permissions: { allow: [], deny: [] },
-    },
-  ]
+  const discoveredDirs = discoverConfigDirs()
+  let changed = false
+
+  for (let i = 0; i < discoveredDirs.length; i++) {
+    const dir = discoveredDirs[i]
+    const id = configDirToId(dir)
+    const alreadyExists = existing.find((p) =>
+      p.id === id ||
+      p.configDir.replace(/^~/, home) === dir ||
+      p.settingsPath === join(dir, 'settings.json')
+    )
+    if (!alreadyExists) {
+      existing.push(buildProfile(dir, existing.length))
+      changed = true
+    }
+  }
+
+  if (changed) saveProfiles(existing)
+  return existing
 }
 
 export function getProfiles(): Profile[] {

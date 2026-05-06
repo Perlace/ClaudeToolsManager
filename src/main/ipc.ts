@@ -8,6 +8,7 @@ import {
   getProfiles, saveProfiles, getProfileById,
   resolveActiveProfileId, setManualActiveProfileId,
   detectActiveProfileFromProcess, applyProfilePermissions,
+  syncDiscoveredProfiles,
 } from './services/profileManager'
 import { createProfileWindow } from './index'
 import type { Tool, Profile } from '../types/shared'
@@ -44,7 +45,7 @@ export function setupIPC(): void {
   // ─── Profile handlers ────────────────────────────────────────────────────────
 
   ipcMain.handle('get-profiles', () => {
-    return getProfiles()
+    return syncDiscoveredProfiles()
   })
 
   ipcMain.handle('save-profiles', (_event, profiles: Profile[]) => {

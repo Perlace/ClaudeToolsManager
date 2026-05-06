@@ -14,6 +14,7 @@ const api = {
   setActiveProfileId: (id: string | null): Promise<{ success: boolean }> => ipcRenderer.invoke('set-active-profile-id', id),
   detectActiveProfile: (): Promise<string | null> => ipcRenderer.invoke('detect-active-profile'),
   openProfileWindow: (profileId: string): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('open-profile-window', profileId),
+  syncProfiles: (): Promise<Profile[]> => ipcRenderer.invoke('get-profiles'),
   reloadSessions: (): Promise<{ success: boolean; method: string; message: string }> =>
     ipcRenderer.invoke('reload-sessions'),
   isClaudeRunning: (): Promise<boolean> => ipcRenderer.invoke('is-claude-running'),
