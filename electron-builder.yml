@@ -53,7 +53,7 @@ dmg:
 linux:
   icon: resources/icon.png
   category: Development
-  description: Gestionnaire d'outils Claude Code — 50+ outils en 8 catégories
+  description: Gestionnaire d'outils Claude Code — 54+ outils en 8 catégories
   maintainer: Creebs <contact@creebs.fr>
   vendor: Creebs
   synopsis: Claude Code tools manager

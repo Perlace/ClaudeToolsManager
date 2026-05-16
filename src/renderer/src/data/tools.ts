@@ -622,6 +622,82 @@ When a prompt contains a ClaudeSnap block (annotated HTML element with CSS selec
     isImported: false,
   },
 
+  {
+    id: 'fe-framer-motion',
+    name: 'Framer Motion',
+    shortDescription: 'Animations React fluides avec Framer Motion',
+    description:
+      "Expert Framer Motion pour React. Génère des animations déclaratives (motion.div, AnimatePresence, variants, keyframes, gestures) avec spring physics, drag & drop, scroll-triggered, et layout animations. Crée des micro-interactions professionnelles, page transitions, et animations de liste staggered. Toujours avec prefers-reduced-motion respecté.",
+    category: 'frontend',
+    tags: ['framer-motion', 'animation', 'react', 'ux', 'motion'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '~0%',
+    difficulty: 'medium',
+    config: {
+      claudeMd:
+        "## Framer Motion Standards\n\nPour les animations avec Framer Motion:\n- Toujours wrapper avec AnimatePresence pour les mount/unmount\n- Utiliser des variants pour les animations réutilisables\n- Spring physics pour les animations naturelles: { type: 'spring', stiffness: 300, damping: 30 }\n- Durées: micro 0.1-0.15s, feedback 0.2-0.3s, transition 0.3-0.5s\n- Toujours respecter useReducedMotion() de Framer Motion\n- Éviter d'animer des propriétés layout-triggering (width/height) — utiliser scaleX/scaleY\n- staggerChildren pour les listes (0.05-0.1s entre items)\n- useScroll + useTransform pour les effets parallax/scroll",
+    },
+    tips: [
+      'useReducedMotion() détecte prefers-reduced-motion — toujours vérifier',
+      'AnimatePresence est indispensable pour animer les composants qui disparaissent',
+      "variants = animations réutilisables et composables — préférez-les aux props inline",
+      'layoutId permet des transitions fluides entre composants (shared element transition)',
+      "drag avec dragConstraints crée des interactions intuitives sans JS complexe",
+    ],
+    isEnabled: false,
+    isImported: false,
+  },
+  {
+    id: 'fe-design-skill',
+    name: 'Design Skill',
+    shortDescription: 'Expertise UI/UX pour des interfaces professionnelles',
+    description:
+      "Active un mode expert en design d'interface : proportions, hiérarchie visuelle, whitespace, typographie, couleur et contraste. Analyse vos maquettes ou composants et propose des améliorations concrètes alignées sur les principes Gestalt, Material Design 3 et Apple HIG. Transforme les interfaces fonctionnelles en expériences visuellement soignées.",
+    category: 'frontend',
+    tags: ['design', 'ui', 'ux', 'typographie', 'couleur', 'whitespace'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '+15%',
+    difficulty: 'medium',
+    config: {
+      claudeMd:
+        "## UI Design Expertise\n\nCritères de qualité design à appliquer systématiquement:\n- Whitespace: espacements généreux et cohérents (multiples de 4px/8px)\n- Hiérarchie visuelle: une seule action primaire par section, poids typographique clair\n- Typographie: max 2-3 familles, ratio taille minimum 1.25x entre niveaux\n- Couleurs: 60-30-10 (dominant/secondaire/accent), contraste ≥4.5:1\n- Alignement: grille cohérente, pas d'alignements aléatoires\n- Affordance: les éléments interactifs sont visuellement distincts\n- Feedback: chaque action a une réponse visuelle immédiate\n- Signaler les problèmes de design avec [DESIGN ISSUE] + recommandation",
+    },
+    tips: [
+      "Demandez 'analyse le design de ce composant' pour un audit complet",
+      'Le whitespace est un élément de design — ne le réduisez pas pour "gagner de la place"',
+      "Règle des 60-30-10 pour les couleurs : dominant 60%, secondaire 30%, accent 10%",
+      "L'alignement sur une grille de 8px donne une cohérence professionnelle automatique",
+      'Un seul CTA principal par vue — les utilisateurs ne savent pas quoi faire avec 5 boutons',
+    ],
+    isEnabled: false,
+    isImported: false,
+  },
+  {
+    id: 'fe-ui-components',
+    name: 'UI Components',
+    shortDescription: 'Bibliothèque de composants UI prêts à l\'emploi',
+    description:
+      "Génère des composants UI avancés et réutilisables : modals, drawers, tooltips, dropdowns, combobox, data tables avec tri/filtre/pagination, formulaires multi-étapes, carousels, accordéons, tabs, toasts/notifications. Compatibles React + Tailwind, accessibles ARIA, avec animations Framer Motion optionnelles. Production-ready avec TypeScript complet.",
+    category: 'frontend',
+    tags: ['composants', 'ui-library', 'react', 'tailwind', 'accessible'],
+    tokenImpact: 'neutral',
+    tokenEstimate: '+10%',
+    difficulty: 'easy',
+    config: {
+      claudeMd:
+        "## UI Component Standards\n\nPour tous les composants UI:\n- Composition pattern: primitives simples + composants composés\n- TypeScript strict: props typées, generics si nécessaire\n- Accessibilité ARIA obligatoire: roles, aria-labels, keyboard nav, focus management\n- Variants: size (sm/md/lg), variant (primary/secondary/ghost/destructive)\n- Controlled + Uncontrolled: supporter les deux modes (value + defaultValue)\n- Forwardref sur tous les composants qui wrappent un élément DOM\n- Slot pattern (asChild) pour la composition flexible\n- CSS variables pour la customisation thème (pas de couleurs hardcodées)\n- Tests: au moins un test de render et un test d'accessibilité",
+    },
+    tips: [
+      'Précisez le composant voulu : "génère un DataTable avec tri et pagination"',
+      'Le slot pattern (asChild) permet de changer le tag HTML sans perdre le style',
+      'Radix UI primitives + Tailwind = base solide pour un design system custom',
+      "Controlled vs Uncontrolled : supportez les deux pour la flexibilité d'intégration",
+      'Chaque composant doit fonctionner au clavier seul (Tab, Enter, Escape, Arrow keys)',
+    ],
+    isEnabled: false,
+    isImported: false,
+  },
+
   // ─── CODE REVIEW ───────────────────────────────────────────────────────────
   {
     id: 'cr-deep-reviewer',
